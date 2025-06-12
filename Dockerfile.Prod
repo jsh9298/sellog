@@ -1,0 +1,50 @@
+# Production Dockerfile for Spring Boot application
+# 이 Dockerfile은 멀티 스테이지 빌드를 사용하여 작고 효율적이며 안전한 프로덕션 이미지를 생성합니다.
+# Spring Boot의 레이어드 JAR 기능을 활용하여 더 나은 캐싱과 더 작은 최종 이미지 크기를 제공합니다.
+
+# --- Stage 1: 애플리케이션 JAR 빌드 ---
+    FROM openjdk:21-jdk-slim AS builder
+
+    WORKDIR /app
+    
+    # Gradle wrapper 및 빌드 파일 복사
+    COPY gradlew .
+    COPY gradle gradle/
+    COPY build.gradle .
+    COPY settings.gradle .
+    
+    # 전체 소스 코드 복사
+    COPY src src/
+    
+    # Spring Boot 애플리케이션 JAR 빌드
+    # -x test는 테스트를 제외하여 빌드 속도를 높입니다.
+    RUN ./gradlew bootJar -x test
+    
+    # --- Stage 2: 최종 프로덕션 이미지 생성 ---
+    # 최종 애플리케이션을 위한 더 작은 JRE 전용 이미지 사용
+    FROM openjdk:21-jre-slim
+    
+    # 작업 디렉토리 설정
+    WORKDIR /app
+    
+    # 애플리케이션 포트 노출
+    EXPOSE 8080
+    
+    # 빌더 스테이지에서 빌드된 레이어드 JAR 복사
+    # 이는 Spring Boot의 레이어드 JAR 기능을 활용하여 의존성, 스냅샷 의존성,
+    # spring-boot-loader, 애플리케이션 코드를 다른 레이어로 분리하여 효율적인 Docker 이미지 빌드를 가능하게 합니다.
+    COPY --from=builder /app/build/libs/*.jar app.jar
+    
+    # 레이어 추출 (Docker 캐싱을 더 잘 활용하기 위함)
+    RUN java -Djarmode=layertools -jar app.jar extract
+    
+    # 추출된 레이어를 최종 이미지로 복사
+    COPY --from=builder /app/build/extracted/dependencies/ ./
+    COPY --from=builder /app/build/extracted/spring-boot-loader/ ./
+    COPY --from=builder /app/build/extracted/snapshot-dependencies/ ./
+    COPY --from=builder /app/build/extracted/application/ ./
+    
+    # Spring Boot 애플리케이션을 실행하기 위한 진입점 정의
+    # 레이어드 JAR을 위해 JarLauncher를 사용합니다.
+    ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+    
