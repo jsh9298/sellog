@@ -17,8 +17,13 @@ public class User {
     @Column(name = "user_id", nullable = false, columnDefinition = "varchar")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String userId; // 사용자 id
+
+    @Column(name = "permit", nullable = false)
+    private String permission;
+
     @Column(name = "salt", nullable = false, columnDefinition = "varchar")
     private String randomSalt; // 사용자 별 랜덤 솔트값
+
     @Column(name = "create_at", nullable = false, columnDefinition = "varchar")
     private Timestamp createAt; // 가입일
 }
