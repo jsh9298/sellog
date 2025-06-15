@@ -1,0 +1,218 @@
+package com.teamproject.sellog.auth.service;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.teamproject.sellog.auth.jwt.JWT;
+import com.teamproject.sellog.auth.jwt.JwtProvider;
+import com.teamproject.sellog.auth.jwt.PasswordHasher;
+import com.teamproject.sellog.auth.model.UserLoginDto;
+import com.teamproject.sellog.auth.model.UserRegisterDto;
+import com.teamproject.sellog.auth.repository.AuthRepository;
+import com.teamproject.sellog.domain.user.model.user.Role;
+import com.teamproject.sellog.domain.user.model.user.User;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final AuthRepository authRepository;
+    private final JwtProvider jwtProvider;
+    private final RedisService redisService;
+
+    private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
+
+    private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
+
+    @Transactional
+    public User registerUser(UserRegisterDto userRegisterDto) {
+
+        String salt = PasswordHasher.generateSalt();
+        String hashedPassword = PasswordHasher.hashPassword(userRegisterDto.getPassword(), salt);
+
+        User newUser = new User();
+        newUser.setUserId(userRegisterDto.getUserId());
+        newUser.setPasswordHash(hashedPassword);
+        newUser.setPasswordSalt(salt);
+        newUser.setEmail(userRegisterDto.getEmail());
+        newUser.setRole(Role.USER); // 기본 역할 설정
+        newUser.setAccountStatus("ACTIVE"); // 기본 계정 상태 설정
+        newUser.setCreateAt(Timestamp.valueOf(LocalDateTime.now()));
+        newUser.setLastLogin(Timestamp.valueOf(LocalDateTime.now()));
+        newUser.setAccountVisibility("PUBLIC"); // 기본 가시성 설정
+
+        return authRepository.save(newUser);
+
+    }
+
+    @Transactional(readOnly = true) // 로그인 조회는 읽기 전용 트랜잭션
+    public JWT loginUser(UserLoginDto userLoginDto) {
+        // 사용자 ID로 사용자 정보 조회
+        User user = authRepository.findByUserId(userLoginDto.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials")); // 사용자가 없으면 예외 발생
+
+        // 비밀번호 검증
+        boolean passwordMatches = PasswordHasher.verifyPassword(
+                userLoginDto.getPassword(),
+                user.getPasswordHash(),
+                user.getPasswordSalt());
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException("Invalid credentials"); // 비밀번호 불일치 시 예외 발생
+        }
+
+        // JWT 토큰 생성
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getUserId()); // 사용자 ID 클레임 추가
+        claims.put("role", user.getRole()); // 역할 클레임 추가
+
+        return jwtProvider.createJWT(claims);
+    }
+
+    // -------------------수정중-------------
+    @Transactional
+    public void logoutUser(String accessToken, String refreshToken) {
+        // 1. 액세스 토큰 유효성 검증 (만료 여부는 검증하지 않음)
+        Claims accessClaims;
+        try {
+            accessClaims = jwtProvider.getClaims(accessToken);
+        } catch (JwtException e) {
+            // 이미 만료된 토큰이거나 유효하지 않은 토큰은 무시하거나 로깅
+            System.err.println("Logout failed for invalid access token: " + e.getMessage());
+            // return; // 이미 유효하지 않은 토큰은 블랙리스트에 추가할 필요 없음
+            accessClaims = null; // 클레임 가져오기 실패 시 null 처리
+        }
+
+        // 2. 액세스 토큰을 블랙리스트에 추가 (남은 유효 시간 동안)
+        if (accessClaims != null) {
+            Date expiration = accessClaims.getExpiration();
+            if (expiration != null) {
+                long remainingTime = expiration.getTime() - System.currentTimeMillis();
+                if (remainingTime > 0) {
+                    redisService.setValue(ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken, "logout", remainingTime,
+                            TimeUnit.MILLISECONDS);
+                }
+            }
+        }
+
+        // 3. 리프레시 토큰을 블랙리스트에 추가 (리프레시 토큰의 유효 시간 동안)
+        Claims refreshClaims;
+        try {
+            refreshClaims = jwtProvider.getClaims(refreshToken);
+        } catch (JwtException e) {
+            // 이미 만료된 토큰이거나 유효하지 않은 토큰은 무시하거나 로깅
+            System.err.println("Logout failed for invalid refresh token: " + e.getMessage());
+            // return; // 이미 유효하지 않은 토큰은 블랙리스트에 추가할 필요 없음
+            refreshClaims = null; // 클레임 가져오기 실패 시 null 처리
+        }
+
+        if (refreshClaims != null) {
+            Date expiration = refreshClaims.getExpiration();
+            if (expiration != null) {
+                long remainingTime = expiration.getTime() - System.currentTimeMillis();
+                if (remainingTime > 0) {
+                    redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + refreshToken, "logout", remainingTime,
+                            TimeUnit.MILLISECONDS);
+                }
+            }
+        }
+    }
+
+    // 회원 탈퇴 처리
+    @Transactional
+    public void deleteUser(String userId, String password, String accessToken, String refreshToken) {
+        // 1. 사용자 ID로 사용자 정보 조회
+        User user = authRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // 2. 비밀번호 검증
+        boolean passwordMatches = PasswordHasher.verifyPassword(
+                password,
+                user.getPasswordHash(),
+                user.getPasswordSalt());
+
+        if (!passwordMatches) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+
+        // 3. 현재 사용 중인 액세스 토큰 및 리프레시 토큰 무효화 (블랙리스트 추가)
+        logoutUser(accessToken, refreshToken); // 로그아웃 로직 재활용
+
+        authRepository.delete(user); // User 테이블 데이터 삭제
+    }
+
+    // 사용자 ID로 사용자 정보 조회 (토큰 검증 후 사용될 수 있음)
+    @Transactional(readOnly = true)
+    public Optional<User> findByUserId(String userId) {
+        return authRepository.findByUserId(userId);
+    }
+
+    // 액세스 토큰이 블랙리스트에 있는지 확인
+    public boolean isAccessTokenBlacklisted(String token) {
+        return redisService.hasKey(ACCESS_TOKEN_BLACKLIST_PREFIX + token);
+    }
+
+    // 리프레시 토큰이 블랙리스트에 있는지 확인
+    public boolean isRefreshTokenBlacklisted(String token) {
+        return redisService.hasKey(REFRESH_TOKEN_BLACKLIST_PREFIX + token);
+    }
+
+    @Transactional
+    public JWT refreshToken(String refreshToken) {
+        // 1. 리프레시 토큰 유효성 검증 (서명, 만료 시간 등)
+        Claims claims;
+        try {
+            claims = jwtProvider.getClaims(refreshToken); // 유효성 검증 및 클레임 추출
+        } catch (JwtException e) {
+            // 토큰이 유효하지 않거나 만료된 경우
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
+        // 2. 리프레시 토큰이 블랙리스트에 있는지 확인
+        if (isRefreshTokenBlacklisted(refreshToken)) {
+            // 이미 사용되었거나 무효화된 토큰인 경우
+            throw new IllegalArgumentException("Refresh token is blacklisted");
+        }
+
+        // 3. 토큰에서 사용자 ID 추출
+        String userId = claims.getSubject(); // Subject 클레임에 사용자 ID가 있다고 가정
+
+        // 4. 사용자 정보 조회
+        User user = authRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found")); // 사용자가 없으면 예외 발생
+
+        // 5. 사용자 계정 상태 확인 (필요시)
+        if (!"ACTIVE".equals(user.getAccountStatus())) {
+            throw new IllegalArgumentException("User account is not active");
+        }
+
+        // 6. 기존 리프레시 토큰을 블랙리스트에 추가 (재사용 방지)
+        // 기존 토큰의 남은 유효 시간 동안 블랙리스트에 유지
+        Date expiration = claims.getExpiration();
+        if (expiration != null) {
+            long remainingTime = expiration.getTime() - System.currentTimeMillis();
+            if (remainingTime > 0) {
+                redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + refreshToken, "used", remainingTime,
+                        TimeUnit.MILLISECONDS);
+            }
+        }
+
+        // 7. 새로운 액세스 토큰 및 리프레시 토큰 생성
+        Map<String, Object> Claims = new HashMap<>();
+        Claims.put("userId", user.getUserId());
+        Claims.put("role", user.getRole());
+
+        return jwtProvider.createJWT(Claims);
+    }
+}
