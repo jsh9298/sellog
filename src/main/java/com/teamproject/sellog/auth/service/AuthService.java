@@ -17,8 +17,14 @@ import com.teamproject.sellog.auth.jwt.PasswordHasher;
 import com.teamproject.sellog.auth.model.UserLoginDto;
 import com.teamproject.sellog.auth.model.UserRegisterDto;
 import com.teamproject.sellog.auth.repository.AuthRepository;
+import com.teamproject.sellog.domain.user.model.user.AccountStatus;
+import com.teamproject.sellog.domain.user.model.user.AccountVisibility;
 import com.teamproject.sellog.domain.user.model.user.Role;
 import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.user.UserPrivate;
+import com.teamproject.sellog.domain.user.model.user.UserProfile;
+import com.teamproject.sellog.domain.user.repository.UserPrivateRepository;
+import com.teamproject.sellog.domain.user.repository.UserProfileRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -30,7 +36,6 @@ public class AuthService {
     private final AuthRepository authRepository;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
-
     private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
 
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
@@ -47,16 +52,26 @@ public class AuthService {
         newUser.setPasswordSalt(salt);
         newUser.setEmail(userRegisterDto.getEmail());
         newUser.setRole(Role.USER); // 기본 역할 설정
-        newUser.setAccountStatus("ACTIVE"); // 기본 계정 상태 설정
+        newUser.setAccountStatus(AccountStatus.STAY); // 기본 계정 상태 설정
         newUser.setCreateAt(Timestamp.valueOf(LocalDateTime.now()));
         newUser.setLastLogin(Timestamp.valueOf(LocalDateTime.now()));
-        newUser.setAccountVisibility("PUBLIC"); // 기본 가시성 설정
+        newUser.setAccountVisibility(AccountVisibility.PUBLIC); // 기본 가시성 설정
+
+        UserPrivate userInfoPrivate = new UserPrivate();
+        userInfoPrivate.setUserAddress(userRegisterDto.getAddress());
+        userInfoPrivate.setUserName(userRegisterDto.getName());
+
+        UserProfile userInfoProfile = new UserProfile();
+        userInfoProfile.setNickname(userRegisterDto.getNickname());
+
+        newUser.setUserPrivate(userInfoPrivate);
+        newUser.setUserProfile(userInfoProfile);
 
         return authRepository.save(newUser);
 
     }
 
-    @Transactional(readOnly = true) // 로그인 조회는 읽기 전용 트랜잭션
+    @Transactional
     public JWT loginUser(UserLoginDto userLoginDto) {
         // 사용자 ID로 사용자 정보 조회
         User user = authRepository.findByUserId(userLoginDto.getUserId())
@@ -76,6 +91,8 @@ public class AuthService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getUserId()); // 사용자 ID 클레임 추가
         claims.put("role", user.getRole()); // 역할 클레임 추가
+
+        authRepository.updateLastLogin(user.getUserId(), Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
 
         return jwtProvider.createJWT(claims);
     }
@@ -193,7 +210,7 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 5. 사용자 계정 상태 확인
-        if (!"ACTIVE".equals(user.getAccountStatus())) {
+        if (AccountStatus.INACTIVE.equals(user.getAccountStatus())) {
             throw new IllegalArgumentException("User account is not active");
         }
 
@@ -212,7 +229,7 @@ public class AuthService {
         Map<String, Object> Claims = new HashMap<>();
         Claims.put("userId", user.getUserId());
         Claims.put("role", user.getRole());
-
+        authRepository.updateLastLogin(user.getUserId(), Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
         return jwtProvider.createJWT(Claims);
     }
 

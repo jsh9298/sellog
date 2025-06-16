@@ -47,7 +47,7 @@ public class User {
     private Role role;
 
     @Column(name = "account_status", nullable = false)
-    private String accountStatus;
+    private AccountStatus accountStatus;
 
     @Column(name = "create_at", nullable = false)
     private Timestamp createAt;
@@ -56,7 +56,7 @@ public class User {
     private Timestamp lastLogin;
 
     @Column(name = "account_visibility", nullable = false)
-    private String accountVisibility;
+    private AccountVisibility accountVisibility;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserPrivate userPrivate;

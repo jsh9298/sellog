@@ -29,13 +29,13 @@ public class Follow {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @ManyToMany(cascade = CascadeType.REMOVE) // 관계맵핑 임시
-    @JoinColumn(name = "user_id", referencedColumnName = "id") // 외래키 지정
-    private User userId;
+    // @ManyToMany(cascade = CascadeType.REMOVE) // 관계맵핑 임시
+    // @JoinColumn(name = "user_id", referencedColumnName = "id") // 외래키 지정
+    // private User userId;
 
-    @ManyToMany(cascade = CascadeType.REMOVE) // 관계맵핑 임시
-    @JoinColumn(name = "other_id", referencedColumnName = "id") // 외래키 지정
-    private User other_id;
+    // @ManyToMany(cascade = CascadeType.REMOVE) // 관계맵핑 임시
+    // @JoinColumn(name = "other_id", referencedColumnName = "id") // 외래키 지정
+    // private User other_id;
 
     @Column(name = "status", nullable = true)
     private String status;
