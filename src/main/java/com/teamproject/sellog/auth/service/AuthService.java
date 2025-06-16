@@ -186,13 +186,13 @@ public class AuthService {
         }
 
         // 3. 토큰에서 사용자 ID 추출
-        String userId = claims.getSubject(); // Subject 클레임에 사용자 ID가 있다고 가정
+        String userId = claims.getSubject();
 
         // 4. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found")); // 사용자가 없으면 예외 발생
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 5. 사용자 계정 상태 확인 (필요시)
+        // 5. 사용자 계정 상태 확인
         if (!"ACTIVE".equals(user.getAccountStatus())) {
             throw new IllegalArgumentException("User account is not active");
         }
@@ -214,5 +214,12 @@ public class AuthService {
         Claims.put("role", user.getRole());
 
         return jwtProvider.createJWT(Claims);
+    }
+
+    @Transactional
+    public String findUserId(String email) {
+        User user = authRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return user.getUserId();
     }
 }

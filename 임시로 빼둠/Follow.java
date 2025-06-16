@@ -22,7 +22,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "Follow")
+@Table(name = "Follower")
 public class Follow {
 
     @Id

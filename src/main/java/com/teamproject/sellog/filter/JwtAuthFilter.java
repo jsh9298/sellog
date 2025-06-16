@@ -8,6 +8,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.teamproject.sellog.auth.jwt.JwtProvider;
 import com.teamproject.sellog.auth.service.AuthService;
+import com.teamproject.sellog.common.TokenExtractor;
 import com.teamproject.sellog.domain.user.model.user.User;
 
 import jakarta.servlet.FilterChain;
@@ -27,8 +28,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = resolveToken(request);
-        // -----수정중-----
+        String token = TokenExtractor.extractTokenFromHeader(request);
         if (token != null) {
             try {
                 if (jwtProvider.validateToken(token)) {
@@ -38,13 +38,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
                         return; // 요청 처리 중단
                     }
-                    String userId = jwtProvider.getClaims(token).getSubject();
-                    String role = jwtProvider.getClaims(token).get("role", String.class);
-                    request.setAttribute("authenticatedUserRole", role);
+                    System.out.println("필터 토큰 : " + token);
+                    System.out.println("필터 클레임 : " + jwtProvider.getClaims(token).get("userId", String.class));
+                    String userId = jwtProvider.getClaims(token).get("userId", String.class);
                     Optional<User> userOptional = authService.findByUserId(userId);
                     if (userOptional.isPresent()) {
-                        request.setAttribute("authenticatedUserId", userId);
+                        System.out.println("필터 통과");
+                        request.setAttribute("authenticatedUserId", userOptional.get().getUserId());
                         request.setAttribute("authenticatedUser", userOptional.get());
+                        request.setAttribute("authenticatedUserRole", userOptional.get().getRole());
                     } else {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
                         return;
@@ -56,13 +58,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-    }
-
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
     }
 }

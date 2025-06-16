@@ -3,9 +3,14 @@ package com.teamproject.sellog.domain.user.model.user;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,23 +24,23 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user")
+@Table(name = "member")
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Id
-    @Column(name = "user_id", nullable = false)
-    private String userId; // 사용자 id
+    @Column(name = "user_id", nullable = false, unique = true)
+    private String userId;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(name = "password_salt", nullable = false)
-    private String passwordSalt; // 사용자 별 랜덤 솔트값
+    private String passwordSalt;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @Column(name = "role", nullable = false)
@@ -52,4 +57,32 @@ public class User {
 
     @Column(name = "account_visibility", nullable = false)
     private String accountVisibility;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserPrivate userPrivate;
+
+    public void setUserPrivate(UserPrivate userPrivate) {
+        if (userPrivate == null) {
+            if (this.userPrivate != null) {
+                this.userPrivate.setUser(null);
+            }
+        } else {
+            userPrivate.setUser(this);
+        }
+        this.userPrivate = userPrivate;
+    }
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserProfile userProfile;
+
+    public void setUserProfile(UserProfile userProfile) {
+        if (userProfile == null) {
+            if (this.userProfile != null) {
+                this.userProfile.setUser(null);
+            }
+        } else {
+            userProfile.setUser(this);
+        }
+        this.userProfile = userProfile;
+    }
 }

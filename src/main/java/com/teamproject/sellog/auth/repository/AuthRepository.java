@@ -11,4 +11,6 @@ import com.teamproject.sellog.domain.user.model.user.User;
 @Repository
 public interface AuthRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUserId(String userId);
+
+    Optional<User> findByEmail(String email);
 }
