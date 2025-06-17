@@ -35,12 +35,18 @@ public class UserProfile {
     @JoinColumn(name = "id") // 외래키 지정
     private User user;
 
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickname", nullable = true)
     private String nickname;
 
-    @Column(name = "profile_message", nullable = false)
+    @Column(name = "profile_message", nullable = true)
     private String profileMessage;
 
-    @Column(name = "score", nullable = false)
+    @Column(name = "score", nullable = true)
     private Integer score;
+
+    @Column(name = "profile_img_small", nullable = true)
+    private String profileThumbURL;
+
+    @Column(name = "profile_img_origin", nullable = true)
+    private String profileURL;
 }

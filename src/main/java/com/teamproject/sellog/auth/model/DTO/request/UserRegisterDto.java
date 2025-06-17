@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model;
+package com.teamproject.sellog.auth.model.DTO.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

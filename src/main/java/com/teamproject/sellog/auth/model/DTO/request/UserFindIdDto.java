@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model;
+package com.teamproject.sellog.auth.model.DTO.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,5 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFindIdDto {
+    private String username;
     private String email;
 }

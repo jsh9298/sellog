@@ -11,11 +11,11 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.auth.jwt.JWT;
-import com.teamproject.sellog.auth.jwt.JwtProvider;
-import com.teamproject.sellog.auth.jwt.PasswordHasher;
-import com.teamproject.sellog.auth.model.UserLoginDto;
-import com.teamproject.sellog.auth.model.UserRegisterDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserLoginDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.jwt.JWT;
+import com.teamproject.sellog.auth.model.jwt.JwtProvider;
+import com.teamproject.sellog.auth.model.jwt.PasswordHasher;
 import com.teamproject.sellog.auth.repository.AuthRepository;
 import com.teamproject.sellog.domain.user.model.user.AccountStatus;
 import com.teamproject.sellog.domain.user.model.user.AccountVisibility;
@@ -23,8 +23,6 @@ import com.teamproject.sellog.domain.user.model.user.Role;
 import com.teamproject.sellog.domain.user.model.user.User;
 import com.teamproject.sellog.domain.user.model.user.UserPrivate;
 import com.teamproject.sellog.domain.user.model.user.UserProfile;
-import com.teamproject.sellog.domain.user.repository.UserPrivateRepository;
-import com.teamproject.sellog.domain.user.repository.UserProfileRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -92,7 +90,7 @@ public class AuthService {
         claims.put("userId", user.getUserId()); // 사용자 ID 클레임 추가
         claims.put("role", user.getRole()); // 역할 클레임 추가
 
-        authRepository.updateLastLogin(user.getUserId(), Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
+        user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
 
         return jwtProvider.createJWT(claims);
     }
@@ -203,7 +201,7 @@ public class AuthService {
         }
 
         // 3. 토큰에서 사용자 ID 추출
-        String userId = claims.getSubject();
+        String userId = claims.get("userId", String.class);
 
         // 4. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
@@ -229,14 +227,25 @@ public class AuthService {
         Map<String, Object> Claims = new HashMap<>();
         Claims.put("userId", user.getUserId());
         Claims.put("role", user.getRole());
-        authRepository.updateLastLogin(user.getUserId(), Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
+        user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
         return jwtProvider.createJWT(Claims);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public String findUserId(String email) {
         User user = authRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return user.getUserId();
+    }
+
+    @Transactional
+    public void changePassword(String userId, String email, String password) {
+        User user = authRepository.findByUserIdAndEmail(userId, email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user != null) {
+            String salt = user.getPasswordSalt();
+            String newPassword = PasswordHasher.hashPassword(password, salt);
+            user.setPasswordHash(newPassword);
+        }
     }
 }

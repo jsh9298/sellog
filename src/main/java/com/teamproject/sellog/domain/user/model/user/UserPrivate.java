@@ -2,12 +2,9 @@ package com.teamproject.sellog.domain.user.model.user;
 
 import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
@@ -35,12 +32,12 @@ public class UserPrivate {
     @MapsId
     private User user;
 
-    @Column(name = "phone_number", nullable = false)
+    @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
 
-    @Column(name = "user_address", nullable = false)
+    @Column(name = "user_address", nullable = true)
     private String userAddress;
 
-    @Column(name = "user_name", nullable = false)
+    @Column(name = "user_name", nullable = true)
     private String userName;
 }

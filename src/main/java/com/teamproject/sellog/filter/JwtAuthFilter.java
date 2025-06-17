@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.teamproject.sellog.auth.jwt.JwtProvider;
+import com.teamproject.sellog.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.TokenExtractor;
 import com.teamproject.sellog.domain.user.model.user.User;
@@ -38,15 +38,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
                         return; // 요청 처리 중단
                     }
-                    System.out.println("필터 토큰 : " + token);
-                    System.out.println("필터 클레임 : " + jwtProvider.getClaims(token).get("userId", String.class));
                     String userId = jwtProvider.getClaims(token).get("userId", String.class);
                     Optional<User> userOptional = authService.findByUserId(userId);
                     if (userOptional.isPresent()) {
-                        System.out.println("필터 통과");
                         request.setAttribute("authenticatedUserId", userOptional.get().getUserId());
                         request.setAttribute("authenticatedUser", userOptional.get());
                         request.setAttribute("authenticatedUserRole", userOptional.get().getRole());
+                        request.setAttribute("authenticatedUserAccountState", userOptional);
                     } else {
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
                         return;

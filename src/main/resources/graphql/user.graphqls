@@ -1,0 +1,55 @@
+type Query {
+  userInfoByUserId(userId: String!): 
+  userPrivateByUserId(userId: String!): 
+  userProfileByUserId(userId: String!): 
+}
+
+type Mutation {
+  userInfoSetting(input: UserInfoInput!, userId: String!): MutationResponse
+  userPrivateSetting(
+    input: UserPrivateInput!
+    userId: String!
+  ): MutationResponse
+  userProfileSetting(
+    input: UserProfileInput!
+    userId: String!
+  ): MutationResponse
+}
+
+#쿼리 응답
+type UserInfo{
+
+}
+type UserPrivate{
+
+}
+type UserProfile{
+
+}
+#뮤테이션 공통 응답
+type MutationResponse{
+    isSuccess:Boolean!
+    code:String!
+    message:String!
+}
+#입력
+input UserInfoInput {
+  nickname: String
+  profileMessage: String
+  userName: String
+  userAddress: String
+  phoneNumber: String
+  profileThumbURL: String
+}
+
+input UserProfileInput {
+  nickname: String
+  profileMessage: String
+  profileThumbURL: String
+}
+
+input UserPrivateInput {
+  userName: String
+  userAddress: String
+  phoneNumber: String
+}

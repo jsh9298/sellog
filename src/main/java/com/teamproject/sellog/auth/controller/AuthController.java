@@ -1,11 +1,12 @@
 package com.teamproject.sellog.auth.controller;
 
-import com.teamproject.sellog.auth.jwt.JWT;
-import com.teamproject.sellog.auth.model.RefreshtokenDto;
-import com.teamproject.sellog.auth.model.UserDeletDto;
-import com.teamproject.sellog.auth.model.UserFindIdDto;
-import com.teamproject.sellog.auth.model.UserLoginDto;
-import com.teamproject.sellog.auth.model.UserRegisterDto;
+import com.teamproject.sellog.auth.model.DTO.request.RefreshtokenDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserDeletDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserFindIdDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserLoginDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserPasswordDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.jwt.JWT;
 import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.RestResponse;
 import com.teamproject.sellog.common.TokenExtractor;
@@ -36,7 +37,7 @@ public class AuthController {
             // 사용자 ID 또는 이메일 중복 등 예외 처리
             return ResponseEntity.ok(new RestResponse<>(false, "400", e.getMessage(), null));
         } catch (RuntimeException e) {
-            // 비밀번호 해싱 오류 등 기타 예외 처리
+            // 비밀번호 해싱 오류 등 기타 예외 처리 //수정 필요.
             return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
         }
     }
@@ -109,7 +110,7 @@ public class AuthController {
         }
     }
 
-    // 토큰 갱신 엔드포인트 (리프레시 토큰 기반)
+    // 토큰 갱신 엔드포인트 (리프레시 토큰 기반) //수정 필요.
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody RefreshtokenDto refreshtokenDto) {
         try {
@@ -139,4 +140,20 @@ public class AuthController {
             return ResponseEntity.ok(new RestResponse<>(false, "404", e.getMessage(), null));
         }
     }
+
+    // 비밀번호 변경 엔드포인트, 로그인 전 비밀번호 변경을 위해 존재하기 때문에, email과 변경할 password를 받음.
+
+    /* 이메일 인증과 연동되어야함. */
+
+    @PatchMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody UserPasswordDto userPasswordDto) {
+        try {
+            authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getEmail(),
+                    userPasswordDto.getPassword());
+            return ResponseEntity.ok(new RestResponse<>(true, "200", "Password change successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new RestResponse<>(false, "404", e.getMessage(), null));
+        }
+    }
+
 }
