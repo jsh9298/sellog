@@ -3,6 +3,7 @@ package com.teamproject.sellog.filter;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -11,31 +12,40 @@ import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.TokenExtractor;
 import com.teamproject.sellog.domain.user.model.user.User;
 
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+@WebFilter(urlPatterns = { "/api/*", "/auth/delete" })
 @Component
+@Order(2)
 @RequiredArgsConstructor
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class JwtAuthFilter implements Filter {
 
     private final JwtProvider jwtProvider;
     private final AuthService authService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
 
-        String token = TokenExtractor.extractTokenFromHeader(request);
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse res = (HttpServletResponse) response;
+
+        String token = TokenExtractor.extractTokenFromHeader(req);
         if (token != null) {
             try {
                 if (jwtProvider.validateToken(token)) {
                     if (authService.isAccessTokenBlacklisted(token)) {
                         // 블랙리스트에 있으면 유효하지 않은 토큰으로 처리
                         System.err.println("Blacklisted JWT token: " + token); // 로깅
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
                         return; // 요청 처리 중단
                     }
                     String userId = jwtProvider.getClaims(token).get("userId", String.class);
@@ -46,7 +56,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         request.setAttribute("authenticatedUserRole", userOptional.get().getRole());
                         request.setAttribute("authenticatedUserAccountState", userOptional);
                     } else {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
+                        res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
                         return;
                     }
                 }
@@ -55,6 +65,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 request.setAttribute("jwtError", e.getMessage());
             }
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 }

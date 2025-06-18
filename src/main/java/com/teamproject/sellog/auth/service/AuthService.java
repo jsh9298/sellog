@@ -56,7 +56,6 @@ public class AuthService {
         newUser.setAccountVisibility(AccountVisibility.PUBLIC); // 기본 가시성 설정
 
         UserPrivate userInfoPrivate = new UserPrivate();
-        userInfoPrivate.setUserAddress(userRegisterDto.getAddress());
         userInfoPrivate.setUserName(userRegisterDto.getName());
 
         UserProfile userInfoProfile = new UserProfile();
@@ -202,7 +201,6 @@ public class AuthService {
 
         // 3. 토큰에서 사용자 ID 추출
         String userId = claims.get("userId", String.class);
-
         // 4. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

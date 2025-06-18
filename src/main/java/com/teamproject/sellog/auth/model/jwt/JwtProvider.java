@@ -64,7 +64,7 @@ public class JwtProvider {
 
     public JWT createJWT(Map<String, Object> claims) {
         String accessToken = createToken(claims, getExpireDateAccessToken());
-        String refreshToken = createToken(new HashMap<>(), getExpireDateRefreshToken());
+        String refreshToken = createToken(claims, getExpireDateRefreshToken());
 
         return JWT.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     }

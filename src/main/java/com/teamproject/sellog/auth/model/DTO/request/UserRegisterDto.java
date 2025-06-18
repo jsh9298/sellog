@@ -15,5 +15,4 @@ public class UserRegisterDto {
     private String userId;
     private String password;
     private String email;
-    private String address;
 }
