@@ -1,5 +1,6 @@
 package com.teamproject.sellog.auth.controller;
 
+import com.teamproject.sellog.auth.model.DTO.request.CheckIdDto;
 import com.teamproject.sellog.auth.model.DTO.request.RefreshtokenDto;
 import com.teamproject.sellog.auth.model.DTO.request.UserDeletDto;
 import com.teamproject.sellog.auth.model.DTO.request.UserFindIdDto;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,6 +30,16 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService; // AuthService 주입
+
+    @PostMapping("/checkId")
+    public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
+        if (authService.checkId(checkIdDto.getUserId())) {
+            return ResponseEntity.ok(new RestResponse<>(true, "200", "You can use this Id", null));
+        } else {
+            return ResponseEntity.ok(new RestResponse<>(false, "500", "This Id Already exist", null));
+        }
+
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegisterDto UserRegisterDto) {

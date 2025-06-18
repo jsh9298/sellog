@@ -246,4 +246,9 @@ public class AuthService {
             user.setPasswordHash(newPassword);
         }
     }
+
+    @Transactional(readOnly = true)
+    public boolean checkId(String userId) {
+        return authRepository.existsByUserId(userId);
+    }
 }

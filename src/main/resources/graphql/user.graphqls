@@ -1,54 +1,36 @@
 type Query {
-  userInfoByUserId(userId: String!): UserInfo
-  userPrivateByUserId(userId: String!): UserPrivate
-  userProfileByUserId(userId: String!): UserProfile
+  userInfoByUserId(userId: String!): Response
+  userPrivateByUserId(userId: String!): Response
+  userProfileByUserId(userId: String!): Response
 }
 
 type Mutation {
-  userInfoSetting(input: InfoInput!, userId: String!): MutationResponse
-  userPrivateSetting(input: InfoInput!, userId: String!): MutationResponse
-  userProfileSetting(input: InfoInput!, userId: String!): MutationResponse
+  userInfoSetting(input: InfoInput!, userId: String!): Response
+  userPrivateSetting(input: InfoInput!, userId: String!): Response
+  userProfileSetting(input: InfoInput!, userId: String!): Response
 }
 
-#쿼리 응답
-type UserInfo {
+# 응답
+type Response {
   nickname: String
   profileMessage: String
   profileThumbURL: String
-
+  profileURL: String
   userName: String
   userAddress: String
   phoneNumber: String
-
   email: String
   password: String
-}
-type UserPrivate {
-  userName: String
-  userAddress: String
-  phoneNumber: String
-}
-type UserProfile {
-  nickname: String
-  profileMessage: String
-  profileThumbURL: String
-}
-#뮤테이션 공통 응답
-type MutationResponse {
-  isSuccess: Boolean!
-  code: String!
-  message: String!
 }
 #입력
 input InfoInput {
   nickname: String
   profileMessage: String
   profileThumbURL: String
-
+  profileURL: String
   userName: String
   userAddress: String
   phoneNumber: String
-
   email: String
   password: String
 }
