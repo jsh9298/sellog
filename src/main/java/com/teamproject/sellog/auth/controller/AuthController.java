@@ -1,8 +1,8 @@
 package com.teamproject.sellog.auth.controller;
 
 import com.teamproject.sellog.auth.model.DTO.request.CheckIdDto;
-import com.teamproject.sellog.auth.model.DTO.request.RefreshtokenDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserDeletDto;
+import com.teamproject.sellog.auth.model.DTO.request.RefreshTokenDto;
+import com.teamproject.sellog.auth.model.DTO.request.UserDeleteDto;
 import com.teamproject.sellog.auth.model.DTO.request.UserFindIdDto;
 import com.teamproject.sellog.auth.model.DTO.request.UserLoginDto;
 import com.teamproject.sellog.auth.model.DTO.request.UserPasswordDto;
@@ -33,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/checkId")
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
-        if (authService.checkId(checkIdDto.getUserId())) {
+        if (!authService.checkId(checkIdDto.getUserId())) {
             return ResponseEntity.ok(new RestResponse<>(true, "200", "You can use this Id", null));
         } else {
             return ResponseEntity.ok(new RestResponse<>(false, "500", "This Id Already exist", null));
@@ -92,7 +92,7 @@ public class AuthController {
 
     // 회원 탈퇴 엔드포인트
     @DeleteMapping("/delete") // DELETE 메소드 사용 권장
-    public ResponseEntity<?> deleteUser(@RequestBody UserDeletDto userDeletDto, HttpServletRequest request) {
+    public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
         String refreshToken = request.getHeader("X-Refresh-Token"); // 리프레시 토큰은 별도 헤더에서 추출
 
@@ -107,12 +107,12 @@ public class AuthController {
         }
 
         // 탈퇴 요청의 사용자 ID와 인증된 사용자 ID가 일치하는지 확인
-        if (!authenticatedUserId.equals(userDeletDto.getUserId())) {
+        if (!authenticatedUserId.equals(userDeleteDto.getUserId())) {
             return ResponseEntity.ok(new RestResponse<>(false, "403", "Cannot delete other user's account", null));
         }
 
         try {
-            authService.deleteUser(userDeletDto.getUserId(), userDeletDto.getPassword(), accessToken, refreshToken);
+            authService.deleteUser(userDeleteDto.getUserId(), userDeleteDto.getPassword(), accessToken, refreshToken);
             return ResponseEntity.ok(new RestResponse<>(true, "200", "User deleted successfully", null));
         } catch (IllegalArgumentException e) {
             // 사용자 없음, 비밀번호 불일치 등 예외 처리
@@ -125,10 +125,10 @@ public class AuthController {
 
     // 토큰 갱신 엔드포인트 (리프레시 토큰 기반) //수정 필요.
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshtokenDto refreshtokenDto) {
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
         try {
             // AuthService의 토큰 갱신 로직 호출
-            JWT newTokens = authService.refreshToken(refreshtokenDto.getRefreshToken());
+            JWT newTokens = authService.refreshToken(refreshTokenDto.getRefreshToken());
 
             Map<String, String> response = new HashMap<>();
             response.put("accessToken", newTokens.getAccessToken());

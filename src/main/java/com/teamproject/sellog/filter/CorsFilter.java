@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -14,12 +13,10 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 @WebFilter(urlPatterns = { "/**" })
 @Component
 @Order(1)
-@RequiredArgsConstructor
 public class CorsFilter implements Filter {
 
     @Override

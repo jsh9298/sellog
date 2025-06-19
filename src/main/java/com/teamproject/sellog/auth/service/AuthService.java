@@ -26,14 +26,19 @@ import com.teamproject.sellog.domain.user.model.user.UserProfile;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
     private final AuthRepository authRepository;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
+
+    public AuthService(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService) {
+        this.authRepository = authRepository;
+        this.jwtProvider = jwtProvider;
+        this.redisService = redisService;
+    }
+
     private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
 
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
@@ -51,7 +56,6 @@ public class AuthService {
         newUser.setEmail(userRegisterDto.getEmail());
         newUser.setRole(Role.USER); // 기본 역할 설정
         newUser.setAccountStatus(AccountStatus.STAY); // 기본 계정 상태 설정
-        newUser.setCreateAt(Timestamp.valueOf(LocalDateTime.now()));
         newUser.setLastLogin(Timestamp.valueOf(LocalDateTime.now()));
         newUser.setAccountVisibility(AccountVisibility.PUBLIC); // 기본 가시성 설정
 

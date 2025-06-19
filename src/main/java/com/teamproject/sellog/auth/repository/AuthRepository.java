@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.teamproject.sellog.domain.user.model.user.User;
@@ -17,4 +18,10 @@ public interface AuthRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUserIdAndEmail(String userId, String email);
 
     boolean existsByUserId(String userId);
+
+    @Query("SELECT u.id FROM User u WHERE u.userId = :userId")
+    Optional<UUID> findIdByUserId(String userId);
+
+    @Query("SELECT u.email FROM User u WHERE u.userId = :userId")
+    Optional<String> findEmailByUserId(String userId);
 }

@@ -1,14 +1,15 @@
 package com.teamproject.sellog.auth.model.DTO.request;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class RefreshtokenDto {
+public final class RefreshTokenDto {
     private String refreshToken;
+
+    @JsonCreator
+    public RefreshTokenDto(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }

@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class JWT {
+public final class JWT {
     private String accessToken;
     private String refreshToken;
 

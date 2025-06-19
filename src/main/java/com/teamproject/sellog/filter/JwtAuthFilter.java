@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.teamproject.sellog.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.auth.service.AuthService;
@@ -20,16 +19,19 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 @WebFilter(urlPatterns = { "/api/*", "/auth/delete" })
 @Component
 @Order(2)
-@RequiredArgsConstructor
 public class JwtAuthFilter implements Filter {
 
     private final JwtProvider jwtProvider;
     private final AuthService authService;
+
+    public JwtAuthFilter(JwtProvider jwtProvider, AuthService authService) {
+        this.authService = authService;
+        this.jwtProvider = jwtProvider;
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

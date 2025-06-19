@@ -1,15 +1,16 @@
 package com.teamproject.sellog.auth.model.DTO.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserFindIdDto {
+public final class UserFindIdDto {
     private String username;
     private String email;
+
+    @JsonCreator
+    public UserFindIdDto(String username, String email) {
+        this.username = username;
+        this.email = email;
+    }
 }
