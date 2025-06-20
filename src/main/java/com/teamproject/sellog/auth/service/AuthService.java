@@ -11,8 +11,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.auth.model.DTO.request.UserLoginDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
+import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
 import com.teamproject.sellog.auth.model.jwt.JWT;
 import com.teamproject.sellog.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.auth.model.jwt.PasswordHasher;
@@ -42,6 +42,10 @@ public class AuthService {
     private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
 
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
+
+    private static final String REFRESH_TOKEN_WHITELIST_PREFIX = "refreshToken:whitelist:";
+
+    private static final String ACCESS_TOKEN_WHITELIST_PREFIX = "accessToken:whitelist:";
 
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
@@ -94,8 +98,11 @@ public class AuthService {
         claims.put("role", user.getRole()); // 역할 클레임 추가
 
         user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
+        JWT jwt = jwtProvider.createJWT(claims);
 
-        return jwtProvider.createJWT(claims);
+        redisService.setValue(ACCESS_TOKEN_WHITELIST_PREFIX + jwt.getAccessToken(), "login", 0, TimeUnit.MILLISECONDS);
+        redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + jwt.getAccessToken(), "login", 0, TimeUnit.MILLISECONDS);
+        return jwt;
     }
 
     // -------------------수정중-------------

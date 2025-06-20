@@ -1,12 +1,12 @@
 package com.teamproject.sellog.auth.controller;
 
-import com.teamproject.sellog.auth.model.DTO.request.CheckIdDto;
-import com.teamproject.sellog.auth.model.DTO.request.RefreshTokenDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserDeleteDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserFindIdDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserLoginDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserPasswordDto;
-import com.teamproject.sellog.auth.model.DTO.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.dto.request.CheckIdDto;
+import com.teamproject.sellog.auth.model.dto.request.RefreshTokenDto;
+import com.teamproject.sellog.auth.model.dto.request.UserDeleteDto;
+import com.teamproject.sellog.auth.model.dto.request.UserFindIdDto;
+import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
+import com.teamproject.sellog.auth.model.dto.request.UserPasswordDto;
+import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
 import com.teamproject.sellog.auth.model.jwt.JWT;
 import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.RestResponse;
@@ -16,13 +16,12 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor; // final 필드를 인자로 받는 생성자 생성
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/auth")
@@ -60,10 +59,19 @@ public class AuthController {
         try {
             JWT jwtTokens = authService.loginUser(userLoginDto);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("accessToken", jwtTokens.getAccessToken());
-            response.put("refreshToken", jwtTokens.getRefreshToken());
-            return ResponseEntity.ok(new RestResponse<Map<String, String>>(true, "200", "Login Success", response));
+            String accessToken = jwtTokens.getAccessToken();
+
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
+                    .maxAge(1000L * 60 * 60 * 24 * 60)
+                    .path("/")
+                    .secure(true)
+                    .sameSite("None")
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header("Set-Cookie", cookie.toString())
+                    .body(new RestResponse<String>(true, "200", "Login Success", accessToken));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(new RestResponse<>(false, "401", e.getMessage(), null));
         } catch (RuntimeException e) {

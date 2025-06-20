@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model.DTO.request;
+package com.teamproject.sellog.auth.model.dto.request;
 
 import lombok.Getter;
 import com.fasterxml.jackson.annotation.JsonCreator;
