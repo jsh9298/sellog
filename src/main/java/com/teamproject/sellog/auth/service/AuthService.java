@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,10 +34,15 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
 
-    public AuthService(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService) {
+    private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
+
+    public AuthService(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService,
+            @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds) {
         this.authRepository = authRepository;
         this.jwtProvider = jwtProvider;
         this.redisService = redisService;
+
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
     private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
@@ -45,7 +51,7 @@ public class AuthService {
 
     private static final String REFRESH_TOKEN_WHITELIST_PREFIX = "refreshToken:whitelist:";
 
-    private static final String ACCESS_TOKEN_WHITELIST_PREFIX = "accessToken:whitelist:";
+    private static final String USERID_PREFIX = "userId:";
 
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
@@ -91,7 +97,6 @@ public class AuthService {
         if (!passwordMatches) {
             throw new IllegalArgumentException("Invalid credentials"); // 비밀번호 불일치 시 예외 발생
         }
-
         // JWT 토큰 생성
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getUserId()); // 사용자 ID 클레임 추가
@@ -100,8 +105,9 @@ public class AuthService {
         user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
         JWT jwt = jwtProvider.createJWT(claims);
 
-        redisService.setValue(ACCESS_TOKEN_WHITELIST_PREFIX + jwt.getAccessToken(), "login", 0, TimeUnit.MILLISECONDS);
-        redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + jwt.getAccessToken(), "login", 0, TimeUnit.MILLISECONDS);
+        redisService.setValue(USERID_PREFIX + user.getUserId() + REFRESH_TOKEN_WHITELIST_PREFIX,
+                jwt.getRefreshToken(),
+                refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
         return jwt;
     }
 
@@ -147,6 +153,8 @@ public class AuthService {
             if (expiration != null) {
                 long remainingTime = expiration.getTime() - System.currentTimeMillis();
                 if (remainingTime > 0) {
+                    redisService.deleteValue(
+                            USERID_PREFIX + refreshClaims.get("userId", String.class) + REFRESH_TOKEN_WHITELIST_PREFIX);
                     redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + refreshToken, "logout", remainingTime,
                             TimeUnit.MILLISECONDS);
                 }
@@ -209,9 +217,12 @@ public class AuthService {
             // 이미 사용되었거나 무효화된 토큰인 경우
             throw new IllegalArgumentException("Refresh token is blacklisted");
         }
-
         // 3. 토큰에서 사용자 ID 추출
         String userId = claims.get("userId", String.class);
+
+        if (!redisService.getValue(USERID_PREFIX + userId + REFRESH_TOKEN_WHITELIST_PREFIX).equals(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token is blacklisted");
+        }
         // 4. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -237,7 +248,11 @@ public class AuthService {
         Claims.put("userId", user.getUserId());
         Claims.put("role", user.getRole());
         user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
-        return jwtProvider.createJWT(Claims);
+        JWT jwt = jwtProvider.createJWT(Claims);
+        redisService.setValue(
+                USERID_PREFIX + userId + REFRESH_TOKEN_WHITELIST_PREFIX,
+                jwt.getRefreshToken(), refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
+        return jwt;
     }
 
     @Transactional(readOnly = true)

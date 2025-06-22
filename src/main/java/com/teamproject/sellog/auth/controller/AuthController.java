@@ -12,10 +12,12 @@ import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.RestResponse;
 import com.teamproject.sellog.common.TokenExtractor;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor; // final 필드를 인자로 받는 생성자 생성
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +31,9 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService; // AuthService 주입
+
+    @Value("${jwt.refresh-token-expiration-ms}")
+    private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
 
     @PostMapping("/checkId")
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
@@ -62,7 +67,7 @@ public class AuthController {
             String accessToken = jwtTokens.getAccessToken();
 
             ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
-                    .maxAge(1000L * 60 * 60 * 24 * 60)
+                    .maxAge(refreshTokenValidityInMilliseconds)
                     .path("/")
                     .secure(true)
                     .sameSite("None")
@@ -84,7 +89,14 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
 
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
-        String refreshToken = request.getHeader("X-Refresh-Token"); // 리프레시 토큰은 별도 헤더에서 추출
+        String refreshToken = "";
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
+                    refreshToken = cookie.getValue();
+                }
+            }
+        }
 
         if (accessToken == null && refreshToken == null) {
             return ResponseEntity.ok(new RestResponse<>(false, "400", "Tokens not provided", null));
@@ -102,8 +114,14 @@ public class AuthController {
     @DeleteMapping("/delete") // DELETE 메소드 사용 권장
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
-        String refreshToken = request.getHeader("X-Refresh-Token"); // 리프레시 토큰은 별도 헤더에서 추출
-
+        String refreshToken = "";
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
+                    refreshToken = cookie.getValue();
+                }
+            }
+        }
         if (accessToken == null || refreshToken == null) {
             return ResponseEntity.ok(new RestResponse<>(false, "401", "Authentication tokens required", null));
         }
@@ -133,15 +151,33 @@ public class AuthController {
 
     // 토큰 갱신 엔드포인트 (리프레시 토큰 기반) //수정 필요.
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {
+            String refreshToken = "";
             // AuthService의 토큰 갱신 로직 호출
-            JWT newTokens = authService.refreshToken(refreshTokenDto.getRefreshToken());
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
+                        refreshToken = cookie.getValue();
+                    }
+                }
+            }
+            JWT jwtTokens = authService.refreshToken(refreshToken);
 
-            Map<String, String> response = new HashMap<>();
-            response.put("accessToken", newTokens.getAccessToken());
-            response.put("refreshToken", newTokens.getRefreshToken());
-            return ResponseEntity.ok(new RestResponse<Map<String, String>>(true, "200", "Token refresh", response));
+            String accessToken = jwtTokens.getAccessToken();
+
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
+                    .maxAge(refreshTokenValidityInMilliseconds)
+                    .path("/")
+                    .secure(true)
+                    .sameSite("None")
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header("Set-Cookie", cookie.toString())
+                    .body(new RestResponse<String>(true, "200", "Login Success", accessToken));
+
         } catch (IllegalArgumentException e) {
             // 유효하지 않거나 블랙리스트에 있는 리프레시 토큰 등의 경우
             return ResponseEntity.ok(new RestResponse<>(false, "401", e.getMessage(), null));

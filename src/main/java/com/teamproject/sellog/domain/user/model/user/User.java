@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.teamproject.sellog.domain.post.model.Comment;
+import com.teamproject.sellog.domain.post.model.Post;
 import com.teamproject.sellog.domain.user.model.friend.Block;
 import com.teamproject.sellog.domain.user.model.friend.Follow;
 
@@ -101,15 +103,12 @@ public class User {
 
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Follow> following = new HashSet<>();
-    @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Follow> followers = new HashSet<>();
 
     public void addFollowing(User followedUser) {
         Follow follow = new Follow();
         follow.setFollower(this);
         follow.setFollowed(followedUser);
         this.following.add(follow);
-        followedUser.followers.add(follow);
     }
 
     public void removeFollowing(User followedUser) {
@@ -122,16 +121,11 @@ public class User {
         }
         if (followToRemove != null) {
             this.following.remove(followToRemove);
-            followedUser.followers.remove(followToRemove);
-            followToRemove.setFollower(null);
-            followToRemove.setFollowed(null);
         }
     }
 
     @OneToMany(mappedBy = "blocking", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Block> blocking = new HashSet<>();
-    @OneToMany(mappedBy = "blocked", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Block> blocked = new HashSet<>();
 
     public void addBlocking(User blockedUser) {
         Block block = new Block();
@@ -139,7 +133,6 @@ public class User {
         block.setBlocked(blockedUser);
 
         this.blocking.add(block);
-        blockedUser.blocked.add(block);
     }
 
     public void removeBlocking(User blockedUser) {
@@ -152,10 +145,40 @@ public class User {
         }
         if (blockToRemove != null) {
             this.blocking.remove(blockToRemove);
-            blockedUser.blocked.remove(blockToRemove);
-            blockToRemove.setBlocking(null);
-            blockToRemove.setBlocked(null);
         }
     }
 
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<Post> posts = new HashSet<>();
+
+    public void addPost(Post post) {
+        this.posts.add(post);
+        if (post.getAuthor() != this) {
+            post.setAuthor(this);
+        }
+    }
+
+    public void removePost(Post post) {
+        this.posts.remove(post);
+        if (post.getAuthor() == this) {
+            post.setAuthor(null);
+        }
+    }
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<Comment> comments = new HashSet<>();
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        if (comment.getAuthor() != this) {
+            comment.setAuthor(this);
+        }
+    }
+
+    public void removeComment(Comment comment) {
+        this.comments.remove(comment);
+        if (comment.getAuthor() == this) {
+            comment.setAuthor(null);
+        }
+    }
 }

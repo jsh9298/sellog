@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.user.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +16,11 @@ public final class UserProfileDto {
 
     @JsonCreator
     @Builder
-    public UserProfileDto(String nickname, String profileMessage, Integer score, String profileThumbURL,
-            String profileURL) {
+    public UserProfileDto(@JsonProperty("nickname") final String nickname,
+            @JsonProperty("profileMessage") final String profileMessage,
+            @JsonProperty("score") final Integer score,
+            @JsonProperty("profileThumbURL") final String profileThumbURL,
+            @JsonProperty("profileURL") final String profileURL) {
         this.nickname = nickname;
         this.profileMessage = profileMessage;
         this.score = score;
