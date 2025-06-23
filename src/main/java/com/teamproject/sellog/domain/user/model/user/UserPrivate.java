@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.user;
 
+import java.sql.Date;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -40,4 +41,10 @@ public class UserPrivate {
 
     @Column(name = "user_name", nullable = true)
     private String userName;
+
+    @Column(name = "gender", nullable = true)
+    private Gender gender;
+
+    @Column(name = "birth_day", nullable = true)
+    private String birthDay;
 }

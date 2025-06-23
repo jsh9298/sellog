@@ -1,7 +1,6 @@
 package com.teamproject.sellog.auth.controller;
 
 import com.teamproject.sellog.auth.model.dto.request.CheckIdDto;
-import com.teamproject.sellog.auth.model.dto.request.RefreshTokenDto;
 import com.teamproject.sellog.auth.model.dto.request.UserDeleteDto;
 import com.teamproject.sellog.auth.model.dto.request.UserFindIdDto;
 import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
@@ -15,25 +14,28 @@ import com.teamproject.sellog.common.TokenExtractor;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
-import lombok.RequiredArgsConstructor; // final 필드를 인자로 받는 생성자 생성
+import java.util.Collections;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService; // AuthService 주입
 
-    @Value("${jwt.refresh-token-expiration-ms}")
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
+    // @RequiredArgsConstructor는 @Value에 해당하는 값을 인식못함. 직접 주입해줘야함.
+
+    public AuthController(AuthService authService,
+            @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds) {
+        this.authService = authService;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
+    }
 
     @PostMapping("/checkId")
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
@@ -73,10 +75,10 @@ public class AuthController {
                     .sameSite("None")
                     .httpOnly(true)
                     .build();
-
+            Map<String, String> responseMap = Collections.singletonMap("accessToken", accessToken);
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookie.toString())
-                    .body(new RestResponse<String>(true, "200", "Login Success", accessToken));
+                    .body(new RestResponse<>(true, "200", "Login Success", responseMap));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(new RestResponse<>(false, "401", e.getMessage(), null));
         } catch (RuntimeException e) {
@@ -173,10 +175,10 @@ public class AuthController {
                     .sameSite("None")
                     .httpOnly(true)
                     .build();
-
+            Map<String, String> responseMap = Collections.singletonMap("accessToken", accessToken);
             return ResponseEntity.ok()
                     .header("Set-Cookie", cookie.toString())
-                    .body(new RestResponse<String>(true, "200", "Login Success", accessToken));
+                    .body(new RestResponse<>(true, "200", "Login Success", responseMap));
 
         } catch (IllegalArgumentException e) {
             // 유효하지 않거나 블랙리스트에 있는 리프레시 토큰 등의 경우

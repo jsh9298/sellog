@@ -1,7 +1,13 @@
 package com.teamproject.sellog.filter;
 
 import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -33,12 +39,28 @@ public class JwtAuthFilter implements Filter {
         this.jwtProvider = jwtProvider;
     }
 
+    private final List<Map.Entry<String, Pattern>> NofilteringURI = Arrays.asList(
+            new AbstractMap.SimpleEntry<>("GET", Pattern.compile("^/api/[^/]+/(private|profile)$")));
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
+
+        String reqURI = req.getRequestURI();
+        String reqMethod = req.getMethod();
+
+        for (Map.Entry<String, Pattern> entry : NofilteringURI) { // 또는 HttpMethodAndUriPattern
+            String excludedMethod = entry.getKey(); // 또는 entry.getHttpMethod()
+            Pattern excludedPattern = entry.getValue(); // 또는 entry.getUriPattern()
+
+            if (reqMethod.equalsIgnoreCase(excludedMethod) && excludedPattern.matcher(reqURI).matches()) {
+                chain.doFilter(request, response);
+                return; // 필터 로직 종료
+            }
+        }
 
         String token = TokenExtractor.extractTokenFromHeader(req);
         if (token != null) {

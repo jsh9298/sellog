@@ -38,8 +38,8 @@ public class UserProfile {
     @Column(name = "profile_message", nullable = true)
     private String profileMessage;
 
-    @Column(name = "score", nullable = true)
-    private Integer score;
+    @Column(name = "score", nullable = false)
+    private Integer score = 0;
 
     @Column(name = "profile_img_small", nullable = true)
     private String profileThumbURL;

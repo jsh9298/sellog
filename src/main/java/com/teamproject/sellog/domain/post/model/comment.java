@@ -36,7 +36,7 @@ public class Comment {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "content", nullable = false)
     private String content;
 
     @Column(name = "create_at", nullable = false)
