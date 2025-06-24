@@ -1,4 +1,4 @@
-package com.teamproject.sellog.domain.post.model;
+package com.teamproject.sellog.domain.post.model.entity;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,31 +32,28 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "feed")
-public class Post {
+@Table(name = "product")
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
-    private UUID id;
-
+    private UUID productId;
     @Column(name = "title", nullable = false)
     private String title;
-
+    @Column(name = "price", nullable = false)
+    private BigInteger price;
     @Column(name = "content", nullable = false)
     private String content;
-
+    @Column(name = "place", nullable = false)
+    private String place;
     @Column(name = "create_at", nullable = false)
     private Timestamp createAt;
-
     @Column(name = "update_at")
     private Timestamp updateAt;
-
     @Column(name = "like_cnt", nullable = false)
     private BigInteger likeCnt = BigInteger.ZERO;
-
     @Column(name = "read_cnt", nullable = false)
     private BigInteger readCnt = BigInteger.ZERO;
-
     @Column(name = "thumbnail")
     private String thumbnail;
 
@@ -64,20 +61,20 @@ public class Post {
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = true)
     private User author;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>(); // 게시글에 달린 댓글들
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
 
-    public void addComment(Comment comment) {
-        this.comments.add(comment);
-        if (comment.getPost() != this) {
-            comment.setPost(this);
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        if (review.getProduct() != this) {
+            review.setProduct(this);
         }
     }
 
-    public void removeComment(Comment comment) {
-        this.comments.remove(comment);
-        if (comment.getPost() == this) {
-            comment.setPost(null);
+    public void removeReview(Review review) {
+        this.reviews.remove(review);
+        if (review.getProduct() == this) {
+            review.setProduct(null);
         }
     }
 
@@ -96,5 +93,4 @@ public class Post {
     public void onUpdate() {
         this.updateAt = Timestamp.valueOf(LocalDateTime.now());
     }
-
 }

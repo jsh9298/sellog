@@ -1,10 +1,11 @@
-package com.teamproject.sellog.domain.user.model.friend;
+package com.teamproject.sellog.domain.user.model.entity.friend;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+
 import java.util.UUID;
 
-import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,8 +27,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "follower_list")
-public class Follow {
+@Table(name = "block_list")
+public class Block {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,11 +37,11 @@ public class Follow {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false) // 외래키 지정
-    private User follower;
+    private User blocking;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "other_id", referencedColumnName = "id", nullable = false)
-    private User followed;
+    private User blocked;
 
     @Column(name = "create_at", nullable = true)
     private Timestamp createAt;

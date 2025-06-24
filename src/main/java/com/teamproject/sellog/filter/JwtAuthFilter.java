@@ -3,7 +3,6 @@ package com.teamproject.sellog.filter;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component;
 import com.teamproject.sellog.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.TokenExtractor;
-import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -40,7 +39,7 @@ public class JwtAuthFilter implements Filter {
     }
 
     private final List<Map.Entry<String, Pattern>> NofilteringURI = Arrays.asList(
-            new AbstractMap.SimpleEntry<>("GET", Pattern.compile("^/api/[^/]+/(private|profile)$")));
+            new AbstractMap.SimpleEntry<>("GET", Pattern.compile("^/api/[^/]+/(preview)$")));
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

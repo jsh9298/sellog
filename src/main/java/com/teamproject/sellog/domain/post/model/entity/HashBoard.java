@@ -1,4 +1,4 @@
-package com.teamproject.sellog.domain.post.model;
+package com.teamproject.sellog.domain.post.model.entity;
 
 import java.util.UUID;
 

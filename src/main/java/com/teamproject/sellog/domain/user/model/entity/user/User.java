@@ -1,4 +1,4 @@
-package com.teamproject.sellog.domain.user.model.user;
+package com.teamproject.sellog.domain.user.model.entity.user;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -6,10 +6,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.teamproject.sellog.domain.post.model.Comment;
-import com.teamproject.sellog.domain.post.model.Post;
-import com.teamproject.sellog.domain.user.model.friend.Block;
-import com.teamproject.sellog.domain.user.model.friend.Follow;
+import com.teamproject.sellog.domain.post.model.entity.Comment;
+import com.teamproject.sellog.domain.post.model.entity.Post;
+import com.teamproject.sellog.domain.user.model.entity.friend.Block;
+import com.teamproject.sellog.domain.user.model.entity.friend.Follow;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

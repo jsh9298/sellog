@@ -1,7 +1,7 @@
 package com.teamproject.sellog.domain.user.model.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.teamproject.sellog.domain.user.model.user.Gender;
+import com.teamproject.sellog.domain.user.model.entity.user.Gender;
 
 import lombok.Getter;
 
@@ -33,5 +33,6 @@ public final class UserProfileRequest {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.userAddress = userAddress;
+
     }
 }

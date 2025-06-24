@@ -1,11 +1,11 @@
-package com.teamproject.sellog.domain.post.model;
+package com.teamproject.sellog.domain.post.model.entity;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

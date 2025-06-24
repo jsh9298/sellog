@@ -14,16 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
 import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.dto.response.UserLoginResponse;
 import com.teamproject.sellog.auth.model.jwt.JWT;
 import com.teamproject.sellog.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.auth.model.jwt.PasswordHasher;
 import com.teamproject.sellog.auth.repository.AuthRepository;
-import com.teamproject.sellog.domain.user.model.user.AccountStatus;
-import com.teamproject.sellog.domain.user.model.user.AccountVisibility;
-import com.teamproject.sellog.domain.user.model.user.Role;
-import com.teamproject.sellog.domain.user.model.user.User;
-import com.teamproject.sellog.domain.user.model.user.UserPrivate;
-import com.teamproject.sellog.domain.user.model.user.UserProfile;
+import com.teamproject.sellog.domain.user.model.entity.user.AccountStatus;
+import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;
+import com.teamproject.sellog.domain.user.model.entity.user.Role;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.UserPrivate;
+import com.teamproject.sellog.domain.user.model.entity.user.UserProfile;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -74,6 +75,8 @@ public class AuthService {
 
         UserProfile userInfoProfile = new UserProfile();
         userInfoProfile.setNickname(userRegisterDto.getNickname());
+        userInfoProfile.setProfileURL("https://placehold.co/500x500");
+        userInfoProfile.setProfileThumbURL("https://placehold.co/200x200");
 
         newUser.setUserPrivate(userInfoPrivate);
         newUser.setUserProfile(userInfoProfile);
@@ -83,7 +86,7 @@ public class AuthService {
     }
 
     @Transactional
-    public JWT loginUser(UserLoginDto userLoginDto) {
+    public UserLoginResponse loginUser(UserLoginDto userLoginDto) {
         // 사용자 ID로 사용자 정보 조회
         User user = authRepository.findByUserId(userLoginDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials")); // 사용자가 없으면 예외 발생
@@ -108,7 +111,11 @@ public class AuthService {
         redisService.setValue(USERID_PREFIX + user.getUserId() + REFRESH_TOKEN_WHITELIST_PREFIX,
                 jwt.getRefreshToken(),
                 refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
-        return jwt;
+
+        String profileThumnail = user.getUserProfile().getProfileThumbURL();
+        UserLoginResponse response = new UserLoginResponse(jwt.getAccessToken(), jwt.getRefreshToken(),
+                profileThumnail);
+        return response;
     }
 
     // -------------------수정중-------------

@@ -6,6 +6,7 @@ import com.teamproject.sellog.auth.model.dto.request.UserFindIdDto;
 import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
 import com.teamproject.sellog.auth.model.dto.request.UserPasswordDto;
 import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
+import com.teamproject.sellog.auth.model.dto.response.UserLoginResponse;
 import com.teamproject.sellog.auth.model.jwt.JWT;
 import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.RestResponse;
@@ -15,9 +16,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,10 +67,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto userLoginDto) {
         try {
-            JWT jwtTokens = authService.loginUser(userLoginDto);
+            UserLoginResponse jwtTokens = authService.loginUser(userLoginDto);
 
             String accessToken = jwtTokens.getAccessToken();
-
+            String profileThumbURL = jwtTokens.getProfileThumbURL();
             ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
                     .maxAge(refreshTokenValidityInMilliseconds)
                     .path("/")
@@ -75,9 +78,11 @@ public class AuthController {
                     .sameSite("None")
                     .httpOnly(true)
                     .build();
-            Map<String, String> responseMap = Collections.singletonMap("accessToken", accessToken);
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("accessToken", accessToken);
+            responseMap.put("profileThumbURL", profileThumbURL);
             return ResponseEntity.ok()
-                    .header("Set-Cookie", cookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(new RestResponse<>(true, "200", "Login Success", responseMap));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.ok(new RestResponse<>(false, "401", e.getMessage(), null));
@@ -91,22 +96,33 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
 
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
-        String refreshToken = "";
+        String refreshToken = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
                     refreshToken = cookie.getValue();
+                    break;
                 }
             }
         }
 
-        if (accessToken == null && refreshToken == null) {
+        if (accessToken == null && (refreshToken == null || refreshToken.isEmpty())) {
             return ResponseEntity.ok(new RestResponse<>(false, "400", "Tokens not provided", null));
         }
 
         try {
             authService.logoutUser(accessToken, refreshToken);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "Logout successful", null));
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                    .maxAge(0)
+                    .path("/")
+                    .secure(true)
+                    .sameSite("None")
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString()) // Set-Cookie 헤더 추가
+                    .body(new RestResponse<>(true, "200", "Logout successful", null));
         } catch (Exception e) {
             return ResponseEntity.ok(new RestResponse<>(false, "500", "Logout failed", null));
         }
@@ -116,15 +132,16 @@ public class AuthController {
     @DeleteMapping("/delete") // DELETE 메소드 사용 권장
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
-        String refreshToken = "";
+        String refreshToken = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
                     refreshToken = cookie.getValue();
+                    break;
                 }
             }
         }
-        if (accessToken == null || refreshToken == null) {
+        if (accessToken == null || (refreshToken == null || refreshToken.isEmpty())) {
             return ResponseEntity.ok(new RestResponse<>(false, "401", "Authentication tokens required", null));
         }
 
@@ -141,7 +158,16 @@ public class AuthController {
 
         try {
             authService.deleteUser(userDeleteDto.getUserId(), userDeleteDto.getPassword(), accessToken, refreshToken);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "User deleted successfully", null));
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                    .maxAge(0)
+                    .path("/")
+                    .secure(true)
+                    .sameSite("None")
+                    .httpOnly(true)
+                    .build();
+
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(new RestResponse<>(true, "200", "User deleted successfully", null));
         } catch (IllegalArgumentException e) {
             // 사용자 없음, 비밀번호 불일치 등 예외 처리
             return ResponseEntity.ok(new RestResponse<>(false, "400", e.getMessage(), null));
@@ -164,6 +190,9 @@ public class AuthController {
                     }
                 }
             }
+
+            // 쿠키만료가 들어가야해ㅐㅐ
+
             JWT jwtTokens = authService.refreshToken(refreshToken);
 
             String accessToken = jwtTokens.getAccessToken();
@@ -177,7 +206,7 @@ public class AuthController {
                     .build();
             Map<String, String> responseMap = Collections.singletonMap("accessToken", accessToken);
             return ResponseEntity.ok()
-                    .header("Set-Cookie", cookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(new RestResponse<>(true, "200", "Login Success", responseMap));
 
         } catch (IllegalArgumentException e) {

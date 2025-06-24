@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.teamproject.sellog.domain.user.model.user.User;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 @Repository
 public interface AuthRepository extends JpaRepository<User, UUID> {

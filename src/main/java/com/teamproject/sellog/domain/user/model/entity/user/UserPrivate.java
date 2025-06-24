@@ -1,6 +1,5 @@
-package com.teamproject.sellog.domain.user.model.user;
+package com.teamproject.sellog.domain.user.model.entity.user;
 
-import java.sql.Date;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
