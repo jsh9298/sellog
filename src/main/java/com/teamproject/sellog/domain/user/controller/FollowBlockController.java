@@ -7,30 +7,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class FollowBlockController {
-    public ResponseEntity<?> listFollower() {
+    // public ResponseEntity<?> listFollower() {
 
-    }
+    // }
 
-    public ResponseEntity<?> listFollowed() {
+    // public ResponseEntity<?> listFollowed() {
 
-    }
+    // }
 
-    public ResponseEntity<?> listBlock() {
+    // public ResponseEntity<?> listBlock() {
 
-    }
+    // }
 
-    public ResponseEntity<?> addFollower() {
+    // public ResponseEntity<?> addFollower() {
 
-    }
+    // }
 
-    public ResponseEntity<?> addBlock() {
+    // public ResponseEntity<?> addBlock() {
 
-    }
+    // }
 
-    public ResponseEntity<?> removeFollower() {
+    // public ResponseEntity<?> removeFollower() {
 
-    }
+    // }
 
-    public ResponseEntity<?> removeBlock() {
-    }
+    // public ResponseEntity<?> removeBlock() {
+    // }
 }

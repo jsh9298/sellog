@@ -10,6 +10,7 @@ import lombok.Getter;
 public class UserPreviewResponse {
     private final String profileThumbURL;
     private final String profileURL;
+    private final String userId;
     private final String nickname;
     private final String profileMessage;
     private final Integer score;
@@ -23,6 +24,7 @@ public class UserPreviewResponse {
     public UserPreviewResponse(
             @JsonProperty("profileThumbURL") final String profileThumbURL,
             @JsonProperty("profileURL") final String profileURL,
+            @JsonProperty("userId") final String userId,
             @JsonProperty("nickname") final String nickname,
             @JsonProperty("profileMessage") final String profileMessage,
             @JsonProperty("score") final Integer score,
@@ -32,6 +34,7 @@ public class UserPreviewResponse {
             @JsonProperty("followedCount") final Long followedCount) {
         this.profileThumbURL = profileThumbURL;
         this.profileURL = profileURL;
+        this.userId = userId;
         this.nickname = nickname;
         this.profileMessage = profileMessage;
         this.score = score;

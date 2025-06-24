@@ -11,6 +11,7 @@ import lombok.Getter;
 public final class UserProfileResponse {
     private final String profileThumbURL;
     private final String profileURL;
+    private final String userId;
     private final String userName;
     private final String nickname;
     private final Gender gender;
@@ -18,8 +19,8 @@ public final class UserProfileResponse {
     private final String birthDay;
     private final String email;
     private final String phoneNumber;
-    private final Integer score;
     private final String userAddress;
+    private final Integer score;
 
     private final Long postCount;
     private final Long productCount;
@@ -31,6 +32,7 @@ public final class UserProfileResponse {
     public UserProfileResponse(
             @JsonProperty("profileThumbURL") final String profileThumbURL,
             @JsonProperty("profileURL") final String profileURL,
+            @JsonProperty("userId") final String userId,
             @JsonProperty("userName") final String userName,
             @JsonProperty("nickname") final String nickname,
             @JsonProperty("gender") final Gender gender,
@@ -46,6 +48,7 @@ public final class UserProfileResponse {
             @JsonProperty("followedCount") final Long followedCount) {
         this.profileThumbURL = profileThumbURL;
         this.profileURL = profileURL;
+        this.userId = userId;
         this.userName = userName;
         this.nickname = nickname;
         this.gender = gender;

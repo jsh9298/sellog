@@ -27,7 +27,7 @@ public class UserInfoService {
     @Transactional(readOnly = true)
     public UserProfileResponse findUserProfile(String userId) {
 
-        User user = userRepository.findByUserIdWithProfileAndPrivate(userId)
+        User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         UserProfile userProfile = user.getUserProfile();
         UserPrivate userPrivate = user.getUserPrivate();
@@ -38,7 +38,7 @@ public class UserInfoService {
 
     @Transactional
     public void editUserProfile(String userId, UserProfileRequest userProfileRequest) {
-        User user = userRepository.findByUserIdWithProfileAndPrivate(userId)
+        User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         UserProfile userProfile = user.getUserProfile();
         UserPrivate userPrivate = user.getUserPrivate();
@@ -49,7 +49,7 @@ public class UserInfoService {
 
     @Transactional(readOnly = true)
     public UserPreviewResponse findUserPreview(String userId) {
-        User user = userRepository.findByUserIdWithProfileAndPrivate(userId)
+        User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         UserProfile userProfile = user.getUserProfile();
         UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)

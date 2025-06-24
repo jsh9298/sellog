@@ -14,7 +14,7 @@ import com.teamproject.sellog.domain.user.model.entity.user.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = { "userProfile", "userPrivate" })
-    Optional<User> findByUserIdWithProfileAndPrivate(String userId);
+    Optional<User> findUserWithProfileAndPrivateByUserId(String userId);
 
     @Query("SELECT new com.teamproject.sellog.domain.user.model.dto.UserContentCount(" + // DTO Projection 사용
             "  (SELECT COUNT(p) FROM Post p WHERE p.author.id = u.id), " + // 게시글 수
@@ -26,6 +26,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "WHERE u.userId = :userId")
     Optional<UserContentCount> findContentCountByUserId(String userId);
 
-    @EntityGraph(attributePaths = { "following", "blocking" })
-    Optional<User> findByUserIdWithFollowAndBlock(String userId);
+    // @EntityGraph(attributePaths = { "following", "blocking" })
+    // Optional<User> findByUserIdWithFollowAndBlock(String userId);
 }
