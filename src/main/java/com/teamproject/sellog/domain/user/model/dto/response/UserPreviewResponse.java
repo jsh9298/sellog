@@ -7,31 +7,31 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class UserPreviewResponse {
-    private final String profileThumbURL;
-    private final String profileURL;
-    private final String userId;
-    private final String nickname;
-    private final String profileMessage;
-    private final Integer score;
-    private final Long postCount;
-    private final Long productCount;
-    private final Long followCount; // 팔로윙
-    private final Long followedCount; // 팔로워
+public final class UserPreviewResponse {
+    private String profileThumbURL;
+    private String profileURL;
+    private String userId;
+    private String nickname;
+    private String profileMessage;
+    private Integer score;
+    private Long postCount;
+    private Long productCount;
+    private Long followCount; // 팔로윙
+    private Long followedCount; // 팔로워
 
     @JsonCreator
     @Builder
     public UserPreviewResponse(
-            @JsonProperty("profileThumbURL") final String profileThumbURL,
-            @JsonProperty("profileURL") final String profileURL,
-            @JsonProperty("userId") final String userId,
-            @JsonProperty("nickname") final String nickname,
-            @JsonProperty("profileMessage") final String profileMessage,
-            @JsonProperty("score") final Integer score,
-            @JsonProperty("postCount") final Long postCount,
-            @JsonProperty("productCount") final Long productCount,
-            @JsonProperty("followCount") final Long followCount,
-            @JsonProperty("followedCount") final Long followedCount) {
+            @JsonProperty("profileThumbURL") String profileThumbURL,
+            @JsonProperty("profileURL") String profileURL,
+            @JsonProperty("userId") String userId,
+            @JsonProperty("nickname") String nickname,
+            @JsonProperty("profileMessage") String profileMessage,
+            @JsonProperty("score") Integer score,
+            @JsonProperty("postCount") Long postCount,
+            @JsonProperty("productCount") Long productCount,
+            @JsonProperty("followCount") Long followCount,
+            @JsonProperty("followedCount") Long followedCount) {
         this.profileThumbURL = profileThumbURL;
         this.profileURL = profileURL;
         this.userId = userId;

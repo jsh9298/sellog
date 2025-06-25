@@ -9,43 +9,43 @@ import lombok.Getter;
 
 @Getter
 public final class UserProfileResponse {
-    private final String profileThumbURL;
-    private final String profileURL;
-    private final String userId;
-    private final String userName;
-    private final String nickname;
-    private final Gender gender;
-    private final String profileMessage;
-    private final String birthDay;
-    private final String email;
-    private final String phoneNumber;
-    private final String userAddress;
-    private final Integer score;
+    private String profileThumbURL;
+    private String profileURL;
+    private String userId;
+    private String userName;
+    private String nickname;
+    private Gender gender;
+    private String profileMessage;
+    private String birthDay;
+    private String email;
+    private String phoneNumber;
+    private String userAddress;
+    private Integer score;
 
-    private final Long postCount;
-    private final Long productCount;
-    private final Long followCount; // 팔로윙
-    private final Long followedCount; // 팔로워
+    private Long postCount;
+    private Long productCount;
+    private Long followCount; // 팔로윙
+    private Long followedCount; // 팔로워
 
     @JsonCreator
     @Builder
     public UserProfileResponse(
-            @JsonProperty("profileThumbURL") final String profileThumbURL,
-            @JsonProperty("profileURL") final String profileURL,
-            @JsonProperty("userId") final String userId,
-            @JsonProperty("userName") final String userName,
-            @JsonProperty("nickname") final String nickname,
-            @JsonProperty("gender") final Gender gender,
-            @JsonProperty("profileMessage") final String profileMessage,
-            @JsonProperty("birthDay") final String birthDay,
-            @JsonProperty("email") final String email,
-            @JsonProperty("phoneNumber") final String phoneNumber,
-            @JsonProperty("score") final Integer score,
-            @JsonProperty("userAddress") final String userAddress,
-            @JsonProperty("postCount") final Long postCount,
-            @JsonProperty("productCount") final Long productCount,
-            @JsonProperty("followCount") final Long followCount,
-            @JsonProperty("followedCount") final Long followedCount) {
+            @JsonProperty("profileThumbURL") String profileThumbURL,
+            @JsonProperty("profileURL") String profileURL,
+            @JsonProperty("userId") String userId,
+            @JsonProperty("userName") String userName,
+            @JsonProperty("nickname") String nickname,
+            @JsonProperty("gender") Gender gender,
+            @JsonProperty("profileMessage") String profileMessage,
+            @JsonProperty("birthDay") String birthDay,
+            @JsonProperty("email") String email,
+            @JsonProperty("phoneNumber") String phoneNumber,
+            @JsonProperty("score") Integer score,
+            @JsonProperty("userAddress") String userAddress,
+            @JsonProperty("postCount") Long postCount,
+            @JsonProperty("productCount") Long productCount,
+            @JsonProperty("followCount") Long followCount,
+            @JsonProperty("followedCount") Long followedCount) {
         this.profileThumbURL = profileThumbURL;
         this.profileURL = profileURL;
         this.userId = userId;

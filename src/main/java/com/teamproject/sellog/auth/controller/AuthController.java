@@ -191,8 +191,6 @@ public class AuthController {
                 }
             }
 
-            // 쿠키만료가 들어가야해ㅐㅐ
-
             JWT jwtTokens = authService.refreshToken(refreshToken);
 
             String accessToken = jwtTokens.getAccessToken();

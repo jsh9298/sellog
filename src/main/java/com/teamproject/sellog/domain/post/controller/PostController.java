@@ -10,10 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class PostController {
-    // @GetMapping("/{userId}/list") //
-    // public ResponseEntity<?> userAllPostList(@PathVariable String userId) {
-    // return null;
-    // }
 
     @GetMapping("/{userId}/posts") // type= & limit=
     public ResponseEntity<?> userPostList(@PathVariable String userId, @RequestParam String sort,

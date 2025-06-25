@@ -7,22 +7,22 @@ import lombok.Getter;
 
 @Getter
 public final class UserProfileRequest {
-    private final String profileThumbURL;
-    private final String profileURL;
-    private final String userName;
-    private final String nickname;
-    private final Gender gender;
-    private final String profileMessage;
-    private final String birthDay;
-    private final String email;
-    private final String phoneNumber;
-    private final String userAddress;
+    private String profileThumbURL;
+    private String profileURL;
+    private String userName;
+    private String nickname;
+    private Gender gender;
+    private String profileMessage;
+    private String birthDay;
+    private String email;
+    private String phoneNumber;
+    private String userAddress;
 
     @JsonCreator
-    public UserProfileRequest(final String profileThumbURL, final String profileURL, final String userName,
-            final String nickname,
-            final Gender gender, final String profileMessage, final String birthDay, final String email,
-            final String phoneNumber, final String userAddress) {
+    public UserProfileRequest(String profileThumbURL, String profileURL, String userName,
+            String nickname,
+            Gender gender, String profileMessage, String birthDay, String email,
+            String phoneNumber, String userAddress) {
         this.profileThumbURL = profileThumbURL;
         this.profileURL = profileURL;
         this.userName = userName;

@@ -4,13 +4,13 @@ import lombok.Getter;
 
 @Getter
 public final class UserContentCount {
-    private final Long postCount;
-    private final Long productCount;
-    private final Long followCount; // 팔로윙
-    private final Long followedCount; // 팔로워
+    private Long postCount;
+    private Long productCount;
+    private Long followCount; // 팔로윙
+    private Long followedCount; // 팔로워
 
-    public UserContentCount(final Long postCount, final Long productCount, final Long followCount,
-            final Long followedCount) {
+    public UserContentCount(Long postCount, Long productCount, Long followCount,
+            Long followedCount) {
         this.postCount = postCount;
         this.productCount = productCount;
         this.followCount = followCount;
