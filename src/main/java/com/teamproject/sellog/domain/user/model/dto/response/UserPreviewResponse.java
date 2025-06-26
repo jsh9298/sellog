@@ -1,47 +1,23 @@
 package com.teamproject.sellog.domain.user.model.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode
 public final class UserPreviewResponse {
-    private String profileThumbURL;
-    private String profileURL;
-    private String userId;
-    private String nickname;
-    private String profileMessage;
-    private Integer score;
-    private Long postCount;
-    private Long productCount;
-    private Long followCount; // 팔로윙
-    private Long followedCount; // 팔로워
-
-    @JsonCreator
-    @Builder
-    public UserPreviewResponse(
-            @JsonProperty("profileThumbURL") String profileThumbURL,
-            @JsonProperty("profileURL") String profileURL,
-            @JsonProperty("userId") String userId,
-            @JsonProperty("nickname") String nickname,
-            @JsonProperty("profileMessage") String profileMessage,
-            @JsonProperty("score") Integer score,
-            @JsonProperty("postCount") Long postCount,
-            @JsonProperty("productCount") Long productCount,
-            @JsonProperty("followCount") Long followCount,
-            @JsonProperty("followedCount") Long followedCount) {
-        this.profileThumbURL = profileThumbURL;
-        this.profileURL = profileURL;
-        this.userId = userId;
-        this.nickname = nickname;
-        this.profileMessage = profileMessage;
-        this.score = score;
-
-        this.postCount = postCount;
-        this.productCount = productCount;
-        this.followCount = followCount;
-        this.followedCount = followedCount;
-    }
+    private final String profileThumbURL;
+    private final String profileURL;
+    private final String userId;
+    private final String nickname;
+    private final String profileMessage;
+    private final Integer score;
+    private final Long postCount;
+    private final Long productCount;
+    private final Long followCount; // 팔로윙
+    private final Long followedCount; // 팔로워
 }

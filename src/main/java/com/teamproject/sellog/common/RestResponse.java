@@ -1,11 +1,16 @@
 package com.teamproject.sellog.common;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@EqualsAndHashCode
 public final class RestResponse<T> {
     private final Boolean isSuccess;
     private final String code;
@@ -14,11 +19,4 @@ public final class RestResponse<T> {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final T payload;
 
-    @JsonCreator
-    public RestResponse(Boolean isSuccess, String code, String message, T payload) {
-        this.isSuccess = isSuccess;
-        this.code = code;
-        this.message = message;
-        this.payload = payload;
-    }
 }

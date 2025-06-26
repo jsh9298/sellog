@@ -34,8 +34,8 @@ public class AuthController {
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
     // @RequiredArgsConstructor는 @Value에 해당하는 값을 인식못함. 직접 주입해줘야함.
 
-    public AuthController(AuthService authService,
-            @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds) {
+    public AuthController(final AuthService authService,
+            @Value("${jwt.refresh-token-expiration-ms}") final long refreshTokenValidityInMilliseconds) {
         this.authService = authService;
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }

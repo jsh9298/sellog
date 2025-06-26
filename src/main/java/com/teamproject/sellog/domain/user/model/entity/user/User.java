@@ -3,6 +3,7 @@ package com.teamproject.sellog.domain.user.model.entity.user;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,10 +37,10 @@ import lombok.Setter;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
+    @Column(name = "user_id", nullable = false, unique = true, updatable = false)
     private String userId;
 
     @Column(name = "password_hash", nullable = false)
@@ -57,7 +58,7 @@ public class User {
     @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
-    @Column(name = "create_at", nullable = false)
+    @Column(name = "create_at", nullable = false, updatable = false)
     private Timestamp createAt;
 
     @Column(name = "last_login", nullable = false)
@@ -104,48 +105,47 @@ public class User {
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Follow> following = new HashSet<>();
 
-    public void addFollowing(User followedUser) {
-        Follow follow = new Follow();
-        follow.setFollower(this);
-        follow.setFollowed(followedUser);
-        this.following.add(follow);
+    public boolean addFollowing(User followedUser) {
+        boolean isBlocked = this.blocking.stream()
+                .anyMatch(block -> block.getBlocked().equals(followedUser));
+        if (isBlocked) {
+            return false;
+        }
+        Follow followToAdd = new Follow();
+        followToAdd.setFollower(this);
+        followToAdd.setFollowed(followedUser);
+        return this.following.add(followToAdd);
     }
 
-    public void removeFollowing(User followedUser) {
-        Follow followToRemove = null;
-        for (Follow follow : this.following) {
-            if (follow.getFollowed().equals(followedUser)) {
-                followToRemove = follow;
-                break;
-            }
-        }
-        if (followToRemove != null) {
-            this.following.remove(followToRemove);
-        }
+    public boolean removeFollowing(User followedUser) {
+        Follow followToRemove = new Follow();
+        followToRemove.setFollower(this);
+        followToRemove.setFollowed(followedUser);
+        return this.following.remove(followToRemove);
     }
 
     @OneToMany(mappedBy = "blocking", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Block> blocking = new HashSet<>();
 
-    public void addBlocking(User blockedUser) {
-        Block block = new Block();
-        block.setBlocking(this);
-        block.setBlocked(blockedUser);
+    public boolean addBlocking(User blockedUser) {
+        boolean isFollowing = this.following.stream()
+                .anyMatch(follow -> follow.getFollowed().equals(blockedUser));
+        Block blockToAdd = new Block();
+        blockToAdd.setBlocking(this);
+        blockToAdd.setBlocked(blockedUser);
+        boolean added = this.blocking.add(blockToAdd);
+        if (added && isFollowing) {
+            this.removeFollowing(blockedUser);
 
-        this.blocking.add(block);
+        }
+        return this.blocking.add(blockToAdd);
     }
 
-    public void removeBlocking(User blockedUser) {
-        Block blockToRemove = null;
-        for (Block block : this.blocking) {
-            if (block.getBlocked().equals(blockedUser)) {
-                blockToRemove = block;
-                break;
-            }
-        }
-        if (blockToRemove != null) {
-            this.blocking.remove(blockToRemove);
-        }
+    public boolean removeBlocking(User blockedUser) {
+        Block blockToRemove = new Block();
+        blockToRemove.setBlocking(this);
+        blockToRemove.setBlocked(blockedUser);
+        return this.blocking.remove(blockToRemove);
     }
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
@@ -180,5 +180,28 @@ public class User {
         if (comment.getAuthor() == this) {
             comment.setAuthor(null);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof User)) {
+            return false;
+        }
+        User user = (User) o;
+        if (this.id != null && user.id != null) {
+            return Objects.equals(this.id, user.id);
+        }
+        return Objects.equals(this.userId, user.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.id != null) {
+            return Objects.hash(this.id);
+        }
+        return Objects.hash(this.userId);
     }
 }

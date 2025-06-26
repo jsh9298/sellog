@@ -3,34 +3,20 @@ package com.teamproject.sellog.domain.user.model.dto.response;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode
 public final class FollowerResponse {
-    private UUID id;
-    private String userId;
-    private String nickname;
-    private String profileThumbURL;
-    private String profileMessage;
-    private Timestamp createAt;
-
-    @JsonCreator
-    @Builder
-    public FollowerResponse(@JsonProperty("id") UUID id,
-            @JsonProperty("userId") String userId,
-            @JsonProperty("nickname") String nickname,
-            @JsonProperty("profileThumbURL") String profileThumbURL,
-            @JsonProperty("profileMessage") String profileMessage,
-            @JsonProperty("createAt") Timestamp createAt) {
-        this.userId = userId;
-        this.nickname = nickname;
-        this.profileThumbURL = profileThumbURL;
-        this.profileMessage = profileMessage;
-        this.id = id;
-        this.createAt = createAt;
-    }
+    private final UUID id;
+    private final String userId;
+    private final String nickname;
+    private final String profileThumbURL;
+    private final String profileMessage;
+    private final Timestamp createAt;
 }

@@ -1,19 +1,17 @@
 package com.teamproject.sellog.domain.user.model.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode
 public final class UserContentCount {
-    private Long postCount;
-    private Long productCount;
-    private Long followCount; // 팔로윙
-    private Long followedCount; // 팔로워
-
-    public UserContentCount(Long postCount, Long productCount, Long followCount,
-            Long followedCount) {
-        this.postCount = postCount;
-        this.productCount = productCount;
-        this.followCount = followCount;
-        this.followedCount = followedCount;
-    }
+    private final Long postCount;
+    private final Long productCount;
+    private final Long followCount; // 팔로윙
+    private final Long followedCount; // 팔로워
 }

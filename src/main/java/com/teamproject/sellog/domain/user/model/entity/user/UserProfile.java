@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.entity.user;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -46,4 +47,21 @@ public class UserProfile {
 
     @Column(name = "profile_img_origin", nullable = true)
     private String profileURL;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof UserProfile)) {
+            return false;
+        }
+        UserProfile userProfile = (UserProfile) o;
+        return this.id != null && Objects.equals(this.id, userProfile.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id == null ? 0 : Objects.hash(id);
+    }
 }

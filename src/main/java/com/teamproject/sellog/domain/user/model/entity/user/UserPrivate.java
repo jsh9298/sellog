@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.entity.user;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -46,4 +47,21 @@ public class UserPrivate {
 
     @Column(name = "birth_day", nullable = true)
     private String birthDay;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof UserPrivate)) {
+            return false;
+        }
+        UserPrivate userPrivate = (UserPrivate) o;
+        return this.id != null && Objects.equals(this.id, userPrivate.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id == null ? 0 : Objects.hash(id);
+    }
 }

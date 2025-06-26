@@ -2,6 +2,7 @@ package com.teamproject.sellog.domain.user.model.entity.friend;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 import com.teamproject.sellog.domain.user.model.entity.user.User;
@@ -17,7 +18,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +27,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 @Table(name = "follower_list")
 public class Follow {
 
@@ -52,5 +51,31 @@ public class Follow {
         if (this.createAt == null) {
             this.createAt = Timestamp.valueOf(LocalDateTime.now());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof Follow)) {
+            return false;
+        }
+        Follow follow = (Follow) o;
+        if (id != null && follow.id != null) {
+            return Objects.equals(id, follow.id);
+        }
+
+        return Objects.equals(this.follower.getId(), follow.follower.getId())
+                && Objects.equals(this.followed.getId(), follow.followed.getId());
+
+    }
+
+    @Override
+    public int hashCode() {
+        if (id != null) {
+            return Objects.hash(id);
+        }
+        return Objects.hash(this.follower.getId(), this.followed.getId());
     }
 }

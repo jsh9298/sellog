@@ -1,16 +1,16 @@
 package com.teamproject.sellog.auth.model.jwt;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@EqualsAndHashCode
 public final class JWT {
-    private String accessToken;
-    private String refreshToken;
+    private final String accessToken;
+    private final String refreshToken;
 
-    @Builder
-    public JWT(String accessToken, String refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
 }

@@ -22,15 +22,20 @@ import com.teamproject.sellog.domain.user.repository.FollowRepository;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 import com.teamproject.sellog.mapper.FollowBlockMapper;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
 public class FollowBlockService {
     private final UserRepository userRepository;
     private final FollowBlockMapper followBlockMapper;
     private final FollowRepository followRepository;
     private final BlockRepository blockRepository;
+
+    public FollowBlockService(final UserRepository userRepository, final FollowBlockMapper followBlockMapper,
+            final FollowRepository followRepository, final BlockRepository blockRepository) {
+        this.userRepository = userRepository;
+        this.followBlockMapper = followBlockMapper;
+        this.followRepository = followRepository;
+        this.blockRepository = blockRepository;
+    }
 
     @Transactional(readOnly = true)
     public CursorPageResponse<FollowerResponse> listFollower(String userId, Timestamp lastCreateAt, UUID lastId,
@@ -89,48 +94,44 @@ public class FollowBlockService {
     public CursorPageResponse<FollowerResponse> addFollower(String userId, String otherId) {
         User user = findUser(userId);
         User other = findUser(otherId);
-        if (user.getFollowing().stream().noneMatch(f -> f.getFollowed().equals(other))) {
-            user.addFollowing(other);
-            return listFollower(userId, null, null, 10);
-        } else {
+        boolean added = user.addFollowing(other);
+        if (!added) {
             throw new IllegalStateException("User " + userId + " is already following " + otherId);
         }
+        return listFollower(userId, null, null, 10);
     }
 
     @Transactional
     public CursorPageResponse<BlockResponse> addBlock(String userId, String otherId) {
         User user = findUser(userId);
         User other = findUser(otherId);
-        if (user.getBlocking().stream().noneMatch(f -> f.getBlocked().equals(other))) {
-            user.addBlocking(other);
-            return listBlock(userId, null, null, 10);
-        } else {
+        boolean added = user.addBlocking(other);
+        if (!added) {
             throw new IllegalStateException("User " + userId + " is already blocked " + otherId);
         }
+        return listBlock(userId, null, null, 10);
     }
 
     @Transactional
     public CursorPageResponse<FollowerResponse> removeFollower(String userId, String otherId) {
         User user = findUser(userId);
         User other = findUser(otherId);
-        if (user.getFollowing().stream().anyMatch(f -> f.getFollowed().equals(other))) {
-            user.removeFollowing(other);
-            return listFollower(userId, null, null, 10);
-        } else {
+        boolean removed = user.removeFollowing(other);
+        if (!removed) {
             throw new IllegalStateException("User " + userId + " is not following " + otherId);
         }
+        return listFollower(userId, null, null, 10);
     }
 
     @Transactional
     public CursorPageResponse<BlockResponse> removeBlock(String userId, String otherId) {
         User user = findUser(userId);
         User other = findUser(otherId);
-        if (user.getBlocking().stream().anyMatch(f -> f.getBlocked().equals(other))) {
-            user.removeBlocking(other);
-            return listBlock(userId, null, null, 10);
-        } else {
+        boolean removed = user.removeBlocking(other);
+        if (!removed) {
             throw new IllegalStateException("User " + userId + " is not blocked " + otherId);
         }
+        return listBlock(userId, null, null, 10);
     }
 
     private User findUser(String userId) {
