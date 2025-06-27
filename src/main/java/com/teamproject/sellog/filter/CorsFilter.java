@@ -35,10 +35,9 @@ public class CorsFilter implements Filter {
         if (origin != null && allowedOrigins.contains(origin)) {
             res.setHeader("Access-Control-Allow-Origin", origin); // 요청 Origin을 그대로 응답
         }
-        // res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Credentials", "true"); // 얘 true로
         // 되있으면 origin은 무조건 명시해야함. * 로 쌈싸먹는거 안됨
-        res.setHeader("Access-Control-Allow-Methods", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
         res.setHeader("Access-Control-Max-Age", "3600");
         res.setHeader("Access-Control-Allow-Headers",
                 "Origin, X-Requested-With, Content-Type, Accept, Authorization");

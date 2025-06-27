@@ -10,6 +10,6 @@ import lombok.Getter;
 @Builder
 @EqualsAndHashCode
 public final class OtherUserIdRequest {
-    private final String otherUserId;
+    private final String UserId;
 
 }

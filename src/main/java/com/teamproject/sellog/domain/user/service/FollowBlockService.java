@@ -96,7 +96,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean added = user.addFollowing(other);
         if (!added) {
-            throw new IllegalStateException("User " + userId + " is already following " + otherId);
+            throw new IllegalStateException("check follow/block lists");
         }
         return listFollower(userId, null, null, 10);
     }
@@ -107,7 +107,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean added = user.addBlocking(other);
         if (!added) {
-            throw new IllegalStateException("User " + userId + " is already blocked " + otherId);
+            throw new IllegalStateException("check follow/block lists");
         }
         return listBlock(userId, null, null, 10);
     }
@@ -118,7 +118,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean removed = user.removeFollowing(other);
         if (!removed) {
-            throw new IllegalStateException("User " + userId + " is not following " + otherId);
+            throw new IllegalStateException("check follow/block lists");
         }
         return listFollower(userId, null, null, 10);
     }
@@ -129,7 +129,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean removed = user.removeBlocking(other);
         if (!removed) {
-            throw new IllegalStateException("User " + userId + " is not blocked " + otherId);
+            throw new IllegalStateException("check follow/block lists");
         }
         return listBlock(userId, null, null, 10);
     }

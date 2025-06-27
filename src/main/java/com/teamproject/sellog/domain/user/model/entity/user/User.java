@@ -106,46 +106,93 @@ public class User {
     private Set<Follow> following = new HashSet<>();
 
     public boolean addFollowing(User followedUser) {
-        boolean isBlocked = this.blocking.stream()
-                .anyMatch(block -> block.getBlocked().equals(followedUser));
+        boolean isBlocked = false;
+        for (Block block : this.blocking) {
+            if (block.getBlocked().equals(followedUser)) {
+                isBlocked = true;
+                break;
+            }
+        }
         if (isBlocked) {
+            return false;
+        }
+
+        boolean alreadyFollowing = false;
+        for (Follow follow : this.following) {
+            if (follow.getFollowed().equals(followedUser)) {
+                alreadyFollowing = true;
+                break;
+            }
+        }
+        if (alreadyFollowing) {
             return false;
         }
         Follow followToAdd = new Follow();
         followToAdd.setFollower(this);
         followToAdd.setFollowed(followedUser);
-        return this.following.add(followToAdd);
+        this.following.add(followToAdd);
+        return true;
     }
 
     public boolean removeFollowing(User followedUser) {
-        Follow followToRemove = new Follow();
-        followToRemove.setFollower(this);
-        followToRemove.setFollowed(followedUser);
-        return this.following.remove(followToRemove);
+        Follow followToRemove = null;
+        for (Follow follow : this.following) {
+            if (follow.getFollowed().equals(followedUser)) {
+                followToRemove = follow;
+                break;
+            }
+        }
+        if (followToRemove != null) {
+            this.following.remove(followToRemove);
+            return true;
+        }
+        return false;
     }
 
     @OneToMany(mappedBy = "blocking", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Block> blocking = new HashSet<>();
 
     public boolean addBlocking(User blockedUser) {
-        boolean isFollowing = this.following.stream()
-                .anyMatch(follow -> follow.getFollowed().equals(blockedUser));
-        Block blockToAdd = new Block();
-        blockToAdd.setBlocking(this);
-        blockToAdd.setBlocked(blockedUser);
-        boolean added = this.blocking.add(blockToAdd);
-        if (added && isFollowing) {
-            this.removeFollowing(blockedUser);
-
+        boolean alreadyBlocking = false;
+        for (Block block : this.blocking) {
+            if (block.getBlocked().equals(blockedUser)) {
+                alreadyBlocking = true;
+                break;
+            }
         }
-        return this.blocking.add(blockToAdd);
+        if (alreadyBlocking) {
+            return false;
+        }
+        boolean isFollowing = false;
+        for (Follow follow : this.following) {
+            if (follow.getFollowed().equals(blockedUser)) {
+                isFollowing = true;
+                break;
+            }
+        }
+        Block newBlock = new Block();
+        newBlock.setBlocking(this);
+        newBlock.setBlocked(blockedUser);
+        this.blocking.add(newBlock);
+        if (isFollowing) {
+            this.removeFollowing(blockedUser);
+        }
+        return true;
     }
 
     public boolean removeBlocking(User blockedUser) {
-        Block blockToRemove = new Block();
-        blockToRemove.setBlocking(this);
-        blockToRemove.setBlocked(blockedUser);
-        return this.blocking.remove(blockToRemove);
+        Block blockToRemove = null;
+        for (Block block : this.blocking) {
+            if (block.getBlocked().equals(blockedUser)) {
+                blockToRemove = block;
+                break;
+            }
+        }
+        if (blockToRemove != null) {
+            this.blocking.remove(blockToRemove);
+            return true;
+        }
+        return false;
     }
 
     @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)

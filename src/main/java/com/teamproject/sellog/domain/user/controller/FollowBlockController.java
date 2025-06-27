@@ -64,7 +64,7 @@ public class FollowBlockController {
     public ResponseEntity<?> addFollower(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getOtherUserId();
+        String otherId = otherUserIdRequest.getUserId();
         try {
             CursorPageResponse<FollowerResponse> response = followBlockService.addFollower(userId, otherId);
 
@@ -78,7 +78,7 @@ public class FollowBlockController {
     public ResponseEntity<?> addBlock(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getOtherUserId();
+        String otherId = otherUserIdRequest.getUserId();
         try {
             CursorPageResponse<BlockResponse> response = followBlockService.addBlock(userId, otherId);
             return ResponseEntity.ok(new RestResponse<>(true, "200", "add success", response));
@@ -91,7 +91,7 @@ public class FollowBlockController {
     public ResponseEntity<?> removeFollower(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getOtherUserId();
+        String otherId = otherUserIdRequest.getUserId();
         try {
             CursorPageResponse<FollowerResponse> response = followBlockService.removeFollower(userId, otherId);
 
@@ -105,7 +105,7 @@ public class FollowBlockController {
     public ResponseEntity<?> removeBlock(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getOtherUserId();
+        String otherId = otherUserIdRequest.getUserId();
         try {
             CursorPageResponse<BlockResponse> response = followBlockService.removeBlock(userId, otherId);
             return ResponseEntity.ok(new RestResponse<>(true, "200", "remove success", response));
