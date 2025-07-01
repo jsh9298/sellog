@@ -8,7 +8,7 @@ import { app } from "@azure/functions";
 // storageBlobTrigger.ts 파일 내에 정의된 Azure Functions(예: app.storageBlob(...))를
 // 현재 app 인스턴스에 등록하는 역할을 합니다.
 // 'No job functions found' 오류를 방지하기 위해 모든 함수 정의 파일은 여기에 임포트되어야 합니다.
-import "./functions/storageBlobTrigger";
+import "./storageBlobTrigger.ts";
 
 // Azure Functions 애플리케이션의 전역 설정을 구성합니다.
 // enableHttpStream: true는 HTTP 트리거 함수에서 스트리밍 기능을 활성화하는 설정입니다.

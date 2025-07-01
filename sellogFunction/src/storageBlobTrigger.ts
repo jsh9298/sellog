@@ -72,11 +72,11 @@ async function extractFrame(
 /**
  * Blob Storage에 파일이 업로드될 때 트리거되는 핸들러 함수입니다.
  * 이미지/비디오 파일을 처리하여 썸네일 및 원본/처리된 파일을 다른 Blob에 저장합니다.
- * @param inputBlob 트리거된 Blob의 ReadableStream
+ * @param inputBlob 트리거된 Blob의 ReadableStream 또는 Buffer
  * @param context 함수 호출 컨텍스트
  */
 async function blobHandler(
-  inputBlob: Readable, // Blob 입력은 ReadableStream으로 받습니다.
+  inputBlob: Readable | Buffer, // 👈 inputBlob이 Readable 또는 Buffer 타입일 수 있음을 명시
   context: InvocationContext
 ): Promise<void> {
   const userId = context.triggerMetadata.userId as string;
@@ -90,27 +90,39 @@ async function blobHandler(
   const isImage = ext && imageExt.includes(ext);
   const isVideo = ext && videoExt.includes(ext);
 
-  // 임시 디렉토리 경로 (finally 블록에서 정리하기 위해 try 블록 밖에서 선언)
   let tmpdir: string | undefined;
 
   try {
-    // 입력 스트림을 버퍼로 변환 (sharp 또는 ffmpeg에 전달하기 위해 필요)
-    // 대용량 파일의 경우 이 과정에서 메모리 문제가 발생할 수 있습니다.
-    // ffmpeg는 스트림을 직접 받을 수 있으나, sharp는 버퍼가 필요합니다.
-    // 더 큰 최적화가 필요하다면, 파일을 임시 저장소에 먼저 쓴 후 처리하는 방식을 고려해야 합니다.
-    const chunks: Buffer[] = [];
-    for await (const chunk of inputBlob) {
-      chunks.push(chunk);
+    let fullInputBuffer: Buffer;
+
+    // inputBlob이 Readable 스트림인지 Buffer인지 확인하여 처리
+    if (inputBlob instanceof Readable) {
+      context.log(`[${userId}/${filename}] 입력 Blob이 Readable 스트림입니다. 버퍼로 변환합니다.`);
+      fullInputBuffer = await new Promise<Buffer>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        inputBlob.on('data', chunk => {
+          // 청크가 Buffer나 Uint8Array가 아닐 경우를 대비하여 명시적으로 Buffer로 변환 시도
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+        inputBlob.on('end', () => {
+          resolve(Buffer.concat(chunks));
+        });
+        inputBlob.on('error', reject);
+      });
+    } else if (Buffer.isBuffer(inputBlob)) {
+      context.log(`[${userId}/${filename}] 입력 Blob이 Buffer입니다. 직접 사용합니다.`);
+      fullInputBuffer = inputBlob;
+    } else {
+      // 예상치 못한 타입인 경우 오류 처리
+      throw new Error(`[${userId}/${filename}] 지원하지 않는 inputBlob 타입: ${typeof inputBlob}`);
     }
-    const fullInputBuffer = Buffer.concat(chunks);
-    context.log(
-      `[${userId}/${filename}] 입력 Blob 크기: ${fullInputBuffer.length} bytes`
-    );
+    // --- 수정된 부분 끝 ---
+
+    context.log(`[${userId}/${filename}] 입력 Blob 크기: ${fullInputBuffer.length} bytes`);
+
 
     if (!isImage && !isVideo) {
-      context.log(
-        `[${userId}/${filename}] 지원하지 않는 파일 형식: .${ext}. 원본 파일만 저장합니다.`
-      );
+      context.log(`[${userId}/${filename}] 지원하지 않는 파일 형식: .${ext}. 원본 파일만 저장합니다.`);
       context.extraOutputs.set(postContents, fullInputBuffer); // 처리 없이 원본 파일을 postContents에 저장
       context.log(`[${userId}/${filename}] 원본 파일 저장 완료.`);
     } else {
@@ -119,14 +131,12 @@ async function blobHandler(
       if (isImage) {
         bufferForThumb = fullInputBuffer;
         context.log(`[${userId}/${filename}] 이미지 파일 감지.`);
-      } else {
-        // isVideo
-        context.log(
-          `[${userId}/${filename}] 비디오 파일 감지. 첫 프레임 추출 시작.`
-        );
+      } else { // isVideo
+        context.log(`[${userId}/${filename}] 비디오 파일 감지. 첫 프레임 추출 시작.`);
         tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), "thumb-")); // 임시 디렉토리 생성
 
         // 비디오 스트림을 ffmpeg에 전달하기 위해 새로운 ReadableStream 생성
+        // fullInputBuffer를 다시 스트림으로 변환하여 ffmpeg에 전달
         const videoStreamForFFmpeg = new Readable();
         videoStreamForFFmpeg.push(fullInputBuffer);
         videoStreamForFFmpeg.push(null); // 스트림 끝을 알림
@@ -150,6 +160,7 @@ async function blobHandler(
     // 처리 완료 후 입력 Blob 삭제 (출력 바인딩을 통해 null을 설정하여 삭제)
     context.extraOutputs.set(deleteInputBlobOutput, null);
     context.log(`[${userId}/${filename}] 원본 Blob 삭제 요청 완료.`);
+
   } catch (err) {
     context.error(`[${userId}/${filename}] 처리 중 오류 발생:`, err);
     // 오류 발생 시에도 임시 파일 정리 및 원본 Blob 삭제를 시도할 수 있도록 finally 블록 활용
@@ -162,14 +173,9 @@ async function blobHandler(
     if (tmpdir) {
       try {
         await fs.rm(tmpdir, { recursive: true, force: true });
-        context.log(
-          `[${userId}/${filename}] 임시 디렉토리 정리 완료: ${tmpdir}`
-        );
+        context.log(`[${userId}/${filename}] 임시 디렉토리 정리 완료: ${tmpdir}`);
       } catch (cleanupErr) {
-        context.error(
-          `[${userId}/${filename}] 임시 디렉토리 정리 실패 ${tmpdir}:`,
-          cleanupErr
-        );
+        context.error(`[${userId}/${filename}] 임시 디렉토리 정리 실패 ${tmpdir}:`, cleanupErr);
       }
     }
   }
@@ -177,7 +183,7 @@ async function blobHandler(
 
 // --- Azure Function 정의 ---
 // 'inputcontents' 컨테이너에 Blob이 업로드되면 이 함수가 트리거됩니다.
-app.storageBlob("thumbnailTrigger", {
+app.storageBlob("thumbnailtrigger", {
   path: "inputcontents/{userId}/{filename}", // 트리거 경로 패턴
   connection: "AzureWebJobsStorage", // 스토리지 계정 연결 문자열
   handler: blobHandler, // 실제 로직을 처리할 핸들러 함수
