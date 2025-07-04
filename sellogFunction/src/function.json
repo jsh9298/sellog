@@ -1,0 +1,32 @@
+{
+    "bindings": [
+        {
+            "name": "inputBlob",
+            "type": "blobTrigger",
+            "direction": "in",
+            "path": "inputcontents/{userId}/{fileName}",
+            "connection": "AzureWebJobsStorage"
+        },
+        {
+            "type": "blob",
+            "name": "outputThumbnailBlob",
+            "path": "outcontents/{userId}/thumbnails/{fileName}.jpg",
+            "connection": "AzureWebJobsStorage",
+            "direction": "out"
+        },
+        {
+            "type": "blob",
+            "name": "outputOriginBlob",
+            "path": "outcontents/{userId}/origin/{fileName}",
+            "connection": "AzureWebJobsStorage",
+            "direction": "out"
+        },
+        {
+            "type": "blob",
+            "name": "outputOtherFileBlob",
+            "path": "outcontents/{userId}/{fileName}",
+            "connection": "AzureWebJobsStorage",
+            "direction": "out"
+        }
+    ]
+}

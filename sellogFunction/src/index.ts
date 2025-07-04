@@ -1,8 +1,7 @@
-import { app } from '@azure/functions';
+import { app } from "@azure/functions";
 
-import "./functions/eventGridTrigger";
+import "./functions/blobTrigger";
 
 app.setup({
   enableHttpStream: true,
-
 });
