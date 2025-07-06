@@ -1,0 +1,25 @@
+{
+  "name": "thumbnailtrigger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "prestart": "npm run clean && npm run build",
+    "start": "func start",
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {
+    "@azure/functions": "^3.0.0",
+    "ffmpeg-static": "^5.2.0",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@types/node": "18.x",
+    "azure-functions-core-tools": "^3.x",
+    "rimraf": "^5.0.0",
+    "typescript": "^4.0.0"
+  }
+}
