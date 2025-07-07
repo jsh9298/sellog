@@ -11,5 +11,11 @@
         "excludedTypes": "Request"
       }
     }
+  },
+  "extensions": {
+    "eventGrid": {
+      "maxEventsPerBatch": 1,
+      "maxBatchSize": 1
+    }
   }
 }
