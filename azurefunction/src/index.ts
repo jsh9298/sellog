@@ -6,7 +6,11 @@ import * as os from "os";
 import * as fs from "fs/promises";
 import { spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
-
+const sizes = [
+  { name: "small", width: 100 },
+  { name: "medium", width: 200 },
+  { name: "large", width: 400 },
+];
 const eventGridTrigger = async function (
   context: InvocationContext,
   event: any
@@ -66,7 +70,7 @@ const eventGridTrigger = async function (
   const baseName = path.basename(blobRelativePath);
 
   // 🎯 썸네일 경로
-  const thumbnailPath = `${userId}/thumbnails/${baseName}`;
+
   const originPath = `${userId}/origin/${baseName}`;
   const miscPath = `${userId}/files/${baseName}`;
 
@@ -119,19 +123,33 @@ const eventGridTrigger = async function (
     }
 
     // 썸네일 생성
-    const thumbnailBuffer = await sharp(bufferForThumb)
-      .resize(200, 200, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 80 })
-      .toBuffer();
+    for (const size of sizes) {
+      try {
+        const thumbnailBuffer = await sharp(bufferForThumb)
+          .resize({
+            width: size.width,
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 80, lossless: false })
+          .toBuffer();
+        const baseWebpName = baseName.replace(/\.[^/.]+$/, ".webp");
+        const thumbnailPath = `${userId}/thumbnails/${size.name}/${baseWebpName}`;
+        // 썸네일 업로드
+        await outputContainerClient
+          .getBlockBlobClient(thumbnailPath)
+          .upload(thumbnailBuffer, thumbnailBuffer.length, {
+            blobHTTPHeaders: { blobContentType: "image/webp" },
+          });
 
-    // 썸네일 업로드
-    await outputContainerClient
-      .getBlockBlobClient(thumbnailPath)
-      .upload(thumbnailBuffer, thumbnailBuffer.length, {
-        blobHTTPHeaders: { blobContentType: "image/jpeg" },
-      });
-
-    context.log(`✅ Thumbnail uploaded to: outcontents/${thumbnailPath}`);
+        context.log(`✅ Thumbnail uploaded to: outcontents/${thumbnailPath}`);
+      } catch (err) {
+        context.error(
+          `❌ Failed to create/upload ${size.name} thumbnail:`,
+          err
+        );
+      }
+    }
 
     // 원본 업로드
     await outputContainerClient
