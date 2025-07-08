@@ -7,7 +7,9 @@
     "watch": "tsc -w",
     "clean": "rimraf dist",
     "prestart": "npm run clean && npm run build",
-    "start": "func start"
+    "start": "func start",
+    "predeploy": "npm install --os=linux --cpu=x64 --target=20.19.2 && npm run build",
+    "deploy": "npm run predeploy && zip -r function.zip dist node_modules package.json host.json src"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
