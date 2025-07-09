@@ -43,7 +43,7 @@ public class FileMetadata {
     @Column(name = "create_at", nullable = false)
     private Timestamp createAt;
 
-    private FileType fileType;
+    private FileTarget fileTarget;
 
     @PrePersist
     public void onCreate() {

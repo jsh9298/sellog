@@ -1,5 +1,5 @@
 package com.teamproject.sellog.domain.file.model;
 
-public enum FileType {
+public enum FileTarget {
     POST, CHAT, PROFILE
 }

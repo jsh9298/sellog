@@ -10,8 +10,6 @@ import lombok.Getter;
 @Builder
 @EqualsAndHashCode
 public class FileResponse {
-    private String originalFilename;
-    private String fileUrl;
-    private String thumbnailUrl;
-    private String originUrl;
+    private String outFileUrl;
+    private String originFileUrl;
 }

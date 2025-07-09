@@ -13,9 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.teamproject.sellog.domain.file.model.FileMetadata;
 import com.teamproject.sellog.domain.file.model.FileResponse;
-import com.teamproject.sellog.domain.file.model.FileType;
+import com.teamproject.sellog.domain.file.model.FileTarget;
 import com.teamproject.sellog.domain.file.service.AzureBlobService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,18 +29,9 @@ public class UploadController {
     @PostMapping("/{userId}")
     public ResponseEntity<?> upload(@PathVariable String userId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("fileType") FileType fileType) {
+            @RequestParam("fileType") FileTarget fileType) {
         try {
-            FileMetadata saved = azureBlobService.uploadWithMetadata(userId, file, fileType);
-            String filename = file.getOriginalFilename();
-            FileResponse response = FileResponse
-                    .builder()
-                    .originalFilename(filename)
-                    .fileUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/" + filename))
-                    .originUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/origin/" + filename))
-                    .thumbnailUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/thumbnails/" + filename
-                            + ".jpg"))
-                    .build();
+            FileResponse saved = azureBlobService.uploadWithMetadata(userId, file, fileType);
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
@@ -51,26 +41,14 @@ public class UploadController {
     @PostMapping("/{userId}/multi")
     public ResponseEntity<?> uploadMultiple(@PathVariable String userId,
             @RequestParam("files") List<MultipartFile> files,
-            @RequestParam("fileType") FileType fileType) {
+            @RequestParam("fileType") FileTarget fileType) {
         try {
-            List<FileMetadata> result = azureBlobService.uploadMultiple(userId, files, fileType);
-            List<FileResponse> list = new ArrayList<>();
-            for (MultipartFile file : files) {
-                String filename = file.getOriginalFilename();
-                FileResponse temp = FileResponse
-                        .builder()
-                        .originalFilename(filename)
-                        .fileUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/" + filename))
-                        .originUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/origin/" + filename))
-                        .thumbnailUrl(azureBlobService.buildPublicUrl("outcontents", userId + "/thumbnails/" + filename
-                                + ".jpg"))
-                        .build();
-                list.add(temp);
-            }
-
+            List<FileResponse> result = azureBlobService.uploadMultiple(userId, files,
+                    fileType);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(" Error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(" Error: " +
+                    e.getMessage());
         }
     }
 
