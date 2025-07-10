@@ -12,4 +12,5 @@ import lombok.Getter;
 public class FileResponse {
     private String outFileUrl;
     private String originFileUrl;
+    private String fileHash;
 }

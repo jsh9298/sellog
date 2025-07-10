@@ -12,5 +12,5 @@ import com.teamproject.sellog.domain.file.model.FileMetadata;
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, UUID> {
     Optional<FileMetadata> findByFileHash(String fileHash);
 
-    Optional<FileMetadata> findByIdAndUserId(UUID id, String userId);
+    Optional<FileMetadata> findByFileHashAndUserId(String id, String userId);
 }

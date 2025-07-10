@@ -42,11 +42,10 @@ public class AzureBlobService {
     @Transactional
     public FileResponse uploadWithMetadata(String userId, MultipartFile file, FileTarget fileTarget) throws Exception {
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
-                .orElseThrow(() -> new FileUploadException("파일 이름이 비어 있습니다."));
+                .orElseThrow(() -> new FileUploadException("File name empty."));
 
         byte[] fileBytes;
         String fileHash;
-
         try (InputStream inputStream = file.getInputStream();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -59,21 +58,29 @@ public class AzureBlobService {
             fileBytes = baos.toByteArray();
             fileHash = HexFormat.of().formatHex(md.digest());
         } catch (Exception e) {
-            throw new FileUploadException("파일 데이터를 읽거나 해시를 계산하는 중 오류 발생.", e);
+            throw new FileUploadException("Hashing error.", e);
         }
 
         Optional<FileMetadata> existing = fileMetadataRepository.findByFileHash(fileHash);
         FileMetadata meta = existing.orElseGet(() -> {
             String blobPath = String.format("%s/%s", userId, originalFilename);
             BlobClient blobClient = inputBlobContainerClient.getBlobClient(blobPath);
-
+            List<String> outPath = new ArrayList<String>();
+            outPath.add(String.format("%s/origin/%s", userId, originalFilename));
+            if (checkSupportExtension(file)) {
+                outPath.add(String.format("%s/thumbnails/profile/%s", userId, originalFilename));
+                outPath.add(String.format("%s/thumbnails/post/%s", userId, originalFilename));
+                outPath.add(String.format("%s/thumbnails/chat/%s", userId, originalFilename));
+            } else {
+                outPath.add(String.format("%s/files/%s", userId, originalFilename));
+            }
             try (InputStream uploadStream = new ByteArrayInputStream(fileBytes)) {
                 blobClient.upload(uploadStream, fileBytes.length, true);
 
                 FileMetadata m = new FileMetadata();
                 m.setUserId(userId);
                 m.setOriginalFilename(originalFilename);
-                m.setBlobPath(blobPath);
+                m.setBlobPath(outPath);
                 m.setContentType(file.getContentType());
                 m.setFileSize(file.getSize());
                 m.setFileHash(fileHash);
@@ -81,30 +88,35 @@ public class AzureBlobService {
 
                 return fileMetadataRepository.save(m);
             } catch (Exception e) {
-                if (blobClient.exists())
+                if (blobClient.exists()) {
                     blobClient.delete();
-                throw new RuntimeException("Blob 업로드 실패", e);
+                }
+                throw new RuntimeException("Blob upload failed", e);
             }
         });
 
-        return createResponse(meta, file, fileTarget);
+        return createResponse(meta, file, fileTarget, fileHash);
     }
 
-    private FileResponse createResponse(FileMetadata meta, MultipartFile file, FileTarget fileTarget) {
-        String ext = Optional.ofNullable(StringUtils.getFilenameExtension(file.getOriginalFilename())).orElse("");
-        boolean isThumbSupported = THUMB_SUPPORTED_EXTENSIONS.stream()
-                .anyMatch(s -> s.equalsIgnoreCase(ext));
-
-        String baseDir = String.format("%s/%s/", meta.getUserId(), fileTarget.name());
+    private FileResponse createResponse(FileMetadata meta, MultipartFile file, FileTarget fileTarget, String fileHash) {
+        boolean isThumbSupported = checkSupportExtension(file);
         String outFile = isThumbSupported
-                ? baseDir + file.getName() + ".webp"
-                : baseDir + "file/" + file.getOriginalFilename();
-        String originFile = baseDir + "origin" + file.getOriginalFilename();
-
+                ? String.format("%s/thumbnails/%s/%s", meta.getUserId(), fileTarget.name().toLowerCase(),
+                        StringUtils.getFilename(meta.getOriginalFilename()) + ".webp")
+                : String.format("%s/file/%s", meta.getUserId(), file.getOriginalFilename());
+        String originFile = String.format("%s/origin/%s", meta.getUserId(), file.getOriginalFilename());
         return FileResponse.builder()
                 .originFileUrl(outputBlobContainerClient.getBlobClient(originFile).getBlobUrl())
                 .outFileUrl(outputBlobContainerClient.getBlobClient(outFile).getBlobUrl())
+                .fileHash(fileHash)
                 .build();
+    }
+
+    private boolean checkSupportExtension(MultipartFile file) {
+        String ext = Optional.ofNullable(StringUtils.getFilenameExtension(file.getOriginalFilename())).orElse("");
+        boolean isThumbSupported = THUMB_SUPPORTED_EXTENSIONS.stream()
+                .anyMatch(s -> s.equalsIgnoreCase(ext));
+        return isThumbSupported;
     }
 
     @Transactional
@@ -118,15 +130,17 @@ public class AzureBlobService {
     }
 
     @Transactional
-    public boolean deleteFile(String userId, UUID fileId) {
-        Optional<FileMetadata> metaOpt = fileMetadataRepository.findByIdAndUserId(fileId, userId);
+    public boolean deleteFile(String userId, String fileHash) {
+        Optional<FileMetadata> metaOpt = fileMetadataRepository.findByFileHashAndUserId(fileHash, userId);
         if (metaOpt.isEmpty())
             return false;
 
         FileMetadata meta = metaOpt.get();
-        BlobClient blobClient = inputBlobContainerClient.getBlobClient(meta.getBlobPath());
-        if (blobClient.exists()) {
-            blobClient.delete();
+        for (String src : meta.getBlobPath()) {
+            BlobClient blobClient = outputBlobContainerClient.getBlobClient(src);
+            if (blobClient.exists()) {
+                blobClient.delete();
+            }
         }
 
         fileMetadataRepository.delete(meta);

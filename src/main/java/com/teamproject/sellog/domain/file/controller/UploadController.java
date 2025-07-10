@@ -1,6 +1,5 @@
 package com.teamproject.sellog.domain.file.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +25,7 @@ public class UploadController {
 
     private final AzureBlobService azureBlobService;
 
-    @PostMapping("/{userId}")
+    @PostMapping("/file/{userId}")
     public ResponseEntity<?> upload(@PathVariable String userId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("fileType") FileTarget fileType) {
@@ -38,7 +37,7 @@ public class UploadController {
         }
     }
 
-    @PostMapping("/{userId}/multi")
+    @PostMapping("/file/{userId}/multi")
     public ResponseEntity<?> uploadMultiple(@PathVariable String userId,
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("fileType") FileTarget fileType) {
@@ -52,9 +51,9 @@ public class UploadController {
         }
     }
 
-    @DeleteMapping("/{userId}/{fileId}")
-    public ResponseEntity<?> deleteFile(@PathVariable String userId, @PathVariable UUID fileId) {
-        boolean deleted = azureBlobService.deleteFile(userId, fileId);
+    @DeleteMapping("/file/{userId}/{fileHash}")
+    public ResponseEntity<?> deleteFile(@PathVariable String userId, @PathVariable String fileHash) {
+        boolean deleted = azureBlobService.deleteFile(userId, fileHash);
         if (deleted)
             return ResponseEntity.ok("Deleted");
         return ResponseEntity.status(404).body(" File not found or unauthorized");
