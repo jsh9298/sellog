@@ -1,7 +1,6 @@
 package com.teamproject.sellog.domain.file.controller;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.teamproject.sellog.common.RestResponse;
 import com.teamproject.sellog.domain.file.model.FileResponse;
 import com.teamproject.sellog.domain.file.model.FileTarget;
 import com.teamproject.sellog.domain.file.service.AzureBlobService;
@@ -31,9 +31,9 @@ public class UploadController {
             @RequestParam("fileType") FileTarget fileType) {
         try {
             FileResponse saved = azureBlobService.uploadWithMetadata(userId, file, fileType);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", saved));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+            return ResponseEntity.ok(new RestResponse<>(true, "500", "Error: " + e.getMessage(), null));
         }
     }
 
@@ -44,10 +44,9 @@ public class UploadController {
         try {
             List<FileResponse> result = azureBlobService.uploadMultiple(userId, files,
                     fileType);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", result));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(" Error: " +
-                    e.getMessage());
+            return ResponseEntity.ok(new RestResponse<>(true, "500", "Error: " + e.getMessage(), null));
         }
     }
 
@@ -56,6 +55,6 @@ public class UploadController {
         boolean deleted = azureBlobService.deleteFile(userId, fileHash);
         if (deleted)
             return ResponseEntity.ok("Deleted");
-        return ResponseEntity.status(404).body(" File not found or unauthorized");
+        return ResponseEntity.ok(new RestResponse<>(true, "404", "File not found or unauthorized", null));
     }
 }
