@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model.jwt;
+package com.teamproject.sellog.domain.auth.model.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

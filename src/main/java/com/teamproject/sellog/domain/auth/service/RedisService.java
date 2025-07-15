@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.service;
+package com.teamproject.sellog.domain.auth.service;
 
 import java.util.concurrent.TimeUnit;
 

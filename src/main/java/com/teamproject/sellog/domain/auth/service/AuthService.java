@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.service;
+package com.teamproject.sellog.domain.auth.service;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -12,13 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
-import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
-import com.teamproject.sellog.auth.model.dto.response.UserLoginResponse;
-import com.teamproject.sellog.auth.model.jwt.JWT;
-import com.teamproject.sellog.auth.model.jwt.JwtProvider;
-import com.teamproject.sellog.auth.model.jwt.PasswordHasher;
-import com.teamproject.sellog.auth.repository.AuthRepository;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserLoginDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserRegisterDto;
+import com.teamproject.sellog.domain.auth.model.dto.response.UserLoginResponse;
+import com.teamproject.sellog.domain.auth.model.jwt.JWT;
+import com.teamproject.sellog.domain.auth.model.jwt.JwtProvider;
+import com.teamproject.sellog.domain.auth.model.jwt.PasswordHasher;
+import com.teamproject.sellog.domain.auth.repository.AuthRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountStatus;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;
 import com.teamproject.sellog.domain.user.model.entity.user.Role;

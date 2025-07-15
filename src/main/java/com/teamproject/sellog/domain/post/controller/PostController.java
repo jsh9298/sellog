@@ -1,8 +1,12 @@
 package com.teamproject.sellog.domain.post.controller;
 
+import java.sql.Timestamp;
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,15 +15,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class PostController {
 
-    @GetMapping("/{userId}/posts") // type= & limit=
-    public ResponseEntity<?> userPostList(@PathVariable String userId, @RequestParam String sort,
-            @RequestParam String type, @RequestParam String limit) {
+    @GetMapping("/posts") // 페이징
+    public ResponseEntity<?> postList(
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Timestamp lastCreateAt,
+            @RequestParam(required = false) UUID lastId,
+            @RequestParam(defaultValue = "10") String limit) {
 
         return null;
     }
 
-    @GetMapping("/posts")
-    public ResponseEntity<?> allPostList() {
+    @GetMapping("/read")
+    public ResponseEntity<?> getPost() {
         return null;
     }
+
+    @PostMapping("/posting")
+    public ResponseEntity<?> posting() {
+        return null;
+    }
+
+    @PatchMapping("/edit")
+    public ResponseEntity<?> editPost() {
+        return null;
+    }
+
 }

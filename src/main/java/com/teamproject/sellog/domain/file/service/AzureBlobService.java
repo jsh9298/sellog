@@ -61,28 +61,21 @@ public class AzureBlobService {
         }
 
         String ext = StringUtils.getFilenameExtension(originalFilename);
-
         String blobName = "%s/%s.%s".formatted(userId, fileHash, ext);
-        String thumbName = "%s/thumbnails/%s/%s.webp"
-                .formatted(userId, fileTarget.name().toLowerCase(), fileHash);
-
-        List<String> outPath = new ArrayList<String>();
-        outPath.add(String.format("%s/origin/%s", userId, originalFilename));
-        String outFilename = originalFilename.replaceAll("\\.[^.]+$", ".webp");
-        if (checkSupportExtension(file)) {
-            outPath.add(String.format("%s/thumbnails/profile/%s", userId, outFilename));
-            outPath.add(String.format("%s/thumbnails/post/%s", userId, outFilename));
-            outPath.add(String.format("%s/thumbnails/chat/%s", userId, outFilename));
-        } else {
-            outPath.add(String.format("%s/files/%s", userId, originalFilename));
-        }
-
         Optional<FileMetadata> existing = fileMetadataRepository.findByFileHashAndUserId(fileHash, userId);
-
         FileMetadata meta = existing.orElseGet(() -> {
 
             BlobClient blobClient = inputBlobContainerClient.getBlobClient(blobName);
-
+            List<String> outPath = new ArrayList<String>();
+            outPath.add(String.format("%s/origin/%s", userId, originalFilename));
+            String outFilename = "%s.webp".formatted(fileHash);
+            if (checkSupportExtension(file)) {
+                outPath.add(String.format("%s/thumbnails/profile/%s", userId, outFilename));
+                outPath.add(String.format("%s/thumbnails/post/%s", userId, outFilename));
+                outPath.add(String.format("%s/thumbnails/chat/%s", userId, outFilename));
+            } else {
+                outPath.add(String.format("%s/files/%s", userId, originalFilename));
+            }
             try (InputStream uploadStream = new ByteArrayInputStream(fileBytes)) {
                 blobClient.upload(uploadStream, fileBytes.length, true);
 
@@ -115,7 +108,7 @@ public class AzureBlobService {
         String original = Optional.ofNullable(file.getOriginalFilename())
                 .orElseThrow(() -> new IllegalArgumentException("File name empty."));
 
-        String outFilename = original.replaceAll("\\.[^.]+$", ".webp");
+        String outFilename = "%s.webp".formatted(fileHash);
 
         String outFile = isThumbSupported
                 ? String.format("%s/thumbnails/%s/%s", meta.getUserId(), fileTarget.name().toLowerCase(),

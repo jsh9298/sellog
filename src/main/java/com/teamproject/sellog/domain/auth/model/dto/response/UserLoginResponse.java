@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model.dto.response;
+package com.teamproject.sellog.domain.auth.model.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

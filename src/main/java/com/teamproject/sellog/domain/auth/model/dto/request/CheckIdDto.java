@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.model.dto.request;
+package com.teamproject.sellog.domain.auth.model.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode
-public final class UserDeleteDto {
-
+public final class CheckIdDto {
     private final String userId;
-    private final String password;
 }

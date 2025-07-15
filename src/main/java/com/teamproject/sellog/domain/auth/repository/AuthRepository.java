@@ -1,4 +1,4 @@
-package com.teamproject.sellog.auth.repository;
+package com.teamproject.sellog.domain.auth.repository;
 
 import java.util.Optional;
 import java.util.UUID;

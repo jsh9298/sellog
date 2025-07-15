@@ -1,16 +1,16 @@
-package com.teamproject.sellog.auth.controller;
+package com.teamproject.sellog.domain.auth.controller;
 
-import com.teamproject.sellog.auth.model.dto.request.CheckIdDto;
-import com.teamproject.sellog.auth.model.dto.request.UserDeleteDto;
-import com.teamproject.sellog.auth.model.dto.request.UserFindIdDto;
-import com.teamproject.sellog.auth.model.dto.request.UserLoginDto;
-import com.teamproject.sellog.auth.model.dto.request.UserPasswordDto;
-import com.teamproject.sellog.auth.model.dto.request.UserRegisterDto;
-import com.teamproject.sellog.auth.model.dto.response.UserLoginResponse;
-import com.teamproject.sellog.auth.model.jwt.JWT;
-import com.teamproject.sellog.auth.service.AuthService;
 import com.teamproject.sellog.common.RestResponse;
 import com.teamproject.sellog.common.TokenExtractor;
+import com.teamproject.sellog.domain.auth.model.dto.request.CheckIdDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserDeleteDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserFindIdDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserLoginDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserPasswordDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserRegisterDto;
+import com.teamproject.sellog.domain.auth.model.dto.response.UserLoginResponse;
+import com.teamproject.sellog.domain.auth.model.jwt.JWT;
+import com.teamproject.sellog.domain.auth.service.AuthService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
