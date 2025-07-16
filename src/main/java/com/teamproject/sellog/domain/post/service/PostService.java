@@ -6,20 +6,17 @@ import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
-import com.teamproject.sellog.domain.post.repository.ProductRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 
 @Service
 public class PostService {
     private final PostRepository postRepository;
-    private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
-    public PostService(final PostRepository postRepository, final ProductRepository productRepository,
+    public PostService(final PostRepository postRepository,
             final UserRepository userRepository) {
         this.postRepository = postRepository;
-        this.productRepository = productRepository;
         this.userRepository = userRepository;
     }
 
