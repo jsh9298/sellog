@@ -58,6 +58,7 @@ const eventGridTrigger = async function (
     return;
   }
 
+  const metadata = downloadResponse.metadata;
   const buffer = await streamToBuffer(downloadResponse.readableStreamBody);
 
   const ext = path.extname(blobRelativePath).toLowerCase().slice(1);
@@ -141,6 +142,7 @@ const eventGridTrigger = async function (
           .getBlockBlobClient(thumbnailPath)
           .upload(thumbnailBuffer, thumbnailBuffer.length, {
             blobHTTPHeaders: { blobContentType: "image/webp" },
+            metadata: metadata,
           });
 
         context.log(`✅ Thumbnail uploaded to: outcontents/${thumbnailPath}`);
@@ -159,6 +161,7 @@ const eventGridTrigger = async function (
         blobHTTPHeaders: {
           blobContentType: downloadResponse.contentType ?? undefined,
         },
+        metadata: metadata,
       });
 
     context.log(`📦 Original file uploaded to: outcontents/${originPath}`);
@@ -172,6 +175,7 @@ const eventGridTrigger = async function (
         blobHTTPHeaders: {
           blobContentType: downloadResponse.contentType ?? undefined,
         },
+        metadata: metadata,
       });
 
     context.log(`📁 File uploaded to: outcontents/${miscPath}`);

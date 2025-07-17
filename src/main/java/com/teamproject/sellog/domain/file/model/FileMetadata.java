@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.PrePersist;
@@ -33,10 +35,14 @@ public class FileMetadata {
 
     @Column(name = "original_file", nullable = false)
     private String originalFilename;
+
+    @ElementCollection(fetch = FetchType.LAZY)
     @Column(name = "store_path", nullable = false)
     private List<String> blobPath;
+
     @Column(name = "type", nullable = false)
     private String contentType;
+
     @Column(name = "size", nullable = false)
     private long fileSize;
 

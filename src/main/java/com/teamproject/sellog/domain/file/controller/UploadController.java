@@ -33,7 +33,7 @@ public class UploadController {
             FileResponse saved = azureBlobService.uploadWithMetadata(userId, file, fileType);
             return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", saved));
         } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(true, "500", "Error: " + e.getMessage(), null));
+            return ResponseEntity.ok(new RestResponse<>(false, "500", "Error: " + e.getMessage(), null));
         }
     }
 
@@ -46,7 +46,7 @@ public class UploadController {
                     fileType);
             return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", result));
         } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(true, "500", "Error: " + e.getMessage(), null));
+            return ResponseEntity.ok(new RestResponse<>(false, "500", "Error: " + e.getMessage(), null));
         }
     }
 
@@ -54,7 +54,7 @@ public class UploadController {
     public ResponseEntity<?> deleteFile(@PathVariable String userId, @PathVariable String fileHash) {
         boolean deleted = azureBlobService.deleteFile(userId, fileHash);
         if (deleted)
-            return ResponseEntity.ok("Deleted");
-        return ResponseEntity.ok(new RestResponse<>(true, "404", "File not found or unauthorized", null));
+            return ResponseEntity.ok(new RestResponse<>(false, "200", "File deleted successful", null));
+        return ResponseEntity.ok(new RestResponse<>(false, "404", "File not found or unauthorized", null));
     }
 }

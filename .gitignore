@@ -4,7 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+application.properties
 ### STS ###
 .apt_generated
 .classpath
@@ -37,8 +37,10 @@ out/
 /.vscode/
 
 
-/sellogFunction/node_modules/
+/azurefunction/node_modules/
 
-/sellogFunction/dist
+/azurefunction/dist
 
-/sellogFunction/local.settings.json
+/azurefunction/local.settings.json
+
+azurefunction/function.zip

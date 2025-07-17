@@ -17,8 +17,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserWithProfileAndPrivateByUserId(String userId);
 
     @Query("SELECT new com.teamproject.sellog.domain.user.model.dto.UserContentCount(" + // DTO Projection 사용
-            "  (SELECT COUNT(p) FROM Post p WHERE p.author.id = u.id), " + // 게시글 수
-            "  (SELECT COUNT(prod) FROM Product prod WHERE prod.author.id = u.id), " + // 상품 수 (예시)
+            "  (SELECT COUNT(p) FROM Post p WHERE p.author.id = u.id AND p.postType = 0), " + // 게시글 수
+            "  (SELECT COUNT(prod) FROM Post prod WHERE prod.author.id = u.id  AND prod.postType = 1), " + // 상품 수 (예시)
             "  (SELECT COUNT(foll) FROM Follow foll WHERE foll.follower.id = u.id), " + // 팔로잉 수
             "  (SELECT COUNT(foll2) FROM Follow foll2 WHERE foll2.followed.id = u.id) " + // 팔로워 수
             ") " +

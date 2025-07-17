@@ -3,6 +3,8 @@ package com.teamproject.sellog.domain.file.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -40,6 +42,8 @@ public class AzureBlobService {
 
     @Transactional
     public FileResponse uploadWithMetadata(String userId, MultipartFile file, FileTarget fileTarget) throws Exception {
+        StringBuilder originFilePath = new StringBuilder();
+        StringBuilder outFilePath = new StringBuilder();
         String originalFilename = Optional.ofNullable(file.getOriginalFilename())
                 .orElseThrow(() -> new FileUploadException("File name empty."));
 
@@ -63,19 +67,25 @@ public class AzureBlobService {
         String ext = StringUtils.getFilenameExtension(originalFilename);
         String blobName = "%s/%s.%s".formatted(userId, fileHash, ext);
         Optional<FileMetadata> existing = fileMetadataRepository.findByFileHashAndUserId(fileHash, userId);
-        FileMetadata meta = existing.orElseGet(() -> {
-
+        existing.orElseGet(() -> {
             BlobClient blobClient = inputBlobContainerClient.getBlobClient(blobName);
             List<String> outPath = new ArrayList<String>();
-            outPath.add(String.format("%s/origin/%s", userId, originalFilename));
             String outFilename = "%s.webp".formatted(fileHash);
+            String originHashName = "%s.%s".formatted(fileHash, ext);
             if (checkSupportExtension(file)) {
+                outPath.add(String.format("%s/origin/%s", userId, originHashName));
                 outPath.add(String.format("%s/thumbnails/profile/%s", userId, outFilename));
                 outPath.add(String.format("%s/thumbnails/post/%s", userId, outFilename));
                 outPath.add(String.format("%s/thumbnails/chat/%s", userId, outFilename));
+                outFilePath.append(userId).append("/thumbnails/").append(fileTarget.name().toLowerCase()).append("/")
+                        .append(outFilename);
+                originFilePath.append(userId).append("/origin/").append(originHashName);
             } else {
-                outPath.add(String.format("%s/files/%s", userId, originalFilename));
+                outPath.add(String.format("%s/files/%s", userId, originHashName));
+                outFilePath.append(userId).append("/files/").append(originHashName);
+                originFilePath.append("No thumbnail supports");
             }
+
             try (InputStream uploadStream = new ByteArrayInputStream(fileBytes)) {
                 blobClient.upload(uploadStream, fileBytes.length, true);
 
@@ -100,25 +110,15 @@ public class AzureBlobService {
             }
         });
 
-        return createResponse(meta, file, fileTarget, fileHash);
-    }
+        // return createResponse(meta, file, fileTarget, fileHash);
 
-    private FileResponse createResponse(FileMetadata meta, MultipartFile file, FileTarget fileTarget, String fileHash) {
-        boolean isThumbSupported = checkSupportExtension(file);
-        String original = Optional.ofNullable(file.getOriginalFilename())
-                .orElseThrow(() -> new IllegalArgumentException("File name empty."));
-
-        String outFilename = "%s.webp".formatted(fileHash);
-
-        String outFile = isThumbSupported
-                ? String.format("%s/thumbnails/%s/%s", meta.getUserId(), fileTarget.name().toLowerCase(),
-                        outFilename)
-                : String.format("%s/file/%s", meta.getUserId(), original);
-        String originFile = String.format("%s/origin/%s", meta.getUserId(), original);
         return FileResponse.builder()
-                .originFileUrl(outputBlobContainerClient.getBlobClient(originFile).getBlobUrl())
-                .outFileUrl(outputBlobContainerClient.getBlobClient(outFile).getBlobUrl())
-                .fileHash(fileHash)
+                .originFileUrl(URLDecoder.decode(
+                        outputBlobContainerClient.getBlobClient(originFilePath.toString()).getBlobUrl(),
+                        StandardCharsets.UTF_8.toString()))
+                .outFileUrl(
+                        URLDecoder.decode(outputBlobContainerClient.getBlobClient(outFilePath.toString()).getBlobUrl(),
+                                StandardCharsets.UTF_8.toString()))
                 .build();
     }
 
