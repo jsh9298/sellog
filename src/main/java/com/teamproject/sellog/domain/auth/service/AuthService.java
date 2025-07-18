@@ -75,8 +75,10 @@ public class AuthService {
 
         UserProfile userInfoProfile = new UserProfile();
         userInfoProfile.setNickname(userRegisterDto.getNickname());
-        userInfoProfile.setProfileURL("https://placehold.co/500x500");
-        userInfoProfile.setProfileThumbURL("https://placehold.co/200x200");
+        userInfoProfile.setProfileURL(
+                "https://sellogstorage.blob.core.windows.net/outcontents/Default/origin/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg");
+        userInfoProfile.setProfileThumbURL(
+                "https://sellogstorage.blob.core.windows.net/outcontents/Default/thumbnails/profile/307ce493-b254-4b2d-8ba4-d12c080d6651.webp");
 
         newUser.setUserPrivate(userInfoPrivate);
         newUser.setUserProfile(userInfoProfile);

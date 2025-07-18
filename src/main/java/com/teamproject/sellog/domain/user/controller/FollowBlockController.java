@@ -4,9 +4,10 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,11 +61,11 @@ public class FollowBlockController {
         }
     }
 
-    @PutMapping("/following")
+    @PostMapping("/followers")
     public ResponseEntity<?> addFollower(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getUserId();
+        String otherId = otherUserIdRequest.getOtherId();
         try {
             CursorPageResponse<FollowerResponse> response = followBlockService.addFollower(userId, otherId);
 
@@ -74,11 +75,11 @@ public class FollowBlockController {
         }
     }
 
-    @PutMapping("/blocking")
+    @PostMapping("/blocks")
     public ResponseEntity<?> addBlock(HttpServletRequest request,
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getUserId();
+        String otherId = otherUserIdRequest.getOtherId();
         try {
             CursorPageResponse<BlockResponse> response = followBlockService.addBlock(userId, otherId);
             return ResponseEntity.ok(new RestResponse<>(true, "200", "add success", response));
@@ -87,11 +88,11 @@ public class FollowBlockController {
         }
     }
 
-    @PatchMapping("/unfollow")
+    @DeleteMapping("/followers/{otherId}")
     public ResponseEntity<?> removeFollower(HttpServletRequest request,
-            @RequestBody OtherUserIdRequest otherUserIdRequest) {
+            @PathVariable String otherId) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getUserId();
+
         try {
             CursorPageResponse<FollowerResponse> response = followBlockService.removeFollower(userId, otherId);
 
@@ -101,11 +102,11 @@ public class FollowBlockController {
         }
     }
 
-    @PatchMapping("/unblock")
+    @DeleteMapping("/blocks/{otherId}")
     public ResponseEntity<?> removeBlock(HttpServletRequest request,
-            @RequestBody OtherUserIdRequest otherUserIdRequest) {
+            @PathVariable String otherId) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        String otherId = otherUserIdRequest.getUserId();
+
         try {
             CursorPageResponse<BlockResponse> response = followBlockService.removeBlock(userId, otherId);
             return ResponseEntity.ok(new RestResponse<>(true, "200", "remove success", response));

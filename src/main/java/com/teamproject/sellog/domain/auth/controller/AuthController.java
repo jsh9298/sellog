@@ -129,7 +129,7 @@ public class AuthController {
     }
 
     // 회원 탈퇴 엔드포인트
-    @DeleteMapping("/delete") // DELETE 메소드 사용 권장
+    @PostMapping("/delete") // DELETE 메소드 사용 권장
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
         String refreshToken = null;
