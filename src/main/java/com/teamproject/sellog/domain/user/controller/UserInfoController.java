@@ -14,15 +14,19 @@ import com.teamproject.sellog.domain.user.model.dto.response.UserPreviewResponse
 import com.teamproject.sellog.domain.user.model.dto.response.UserProfileResponse;
 import com.teamproject.sellog.domain.user.service.UserInfoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Tag(name = "사용자 프로필", description = "프로필/개인정보 조회 관련 API")
 public class UserInfoController {
     private final UserInfoService userInfoService;
 
     @GetMapping("/{userId}/profile")
+    @Operation(summary = "프로필 조회(회원용)", description = "프로필(개인정보 포함) 출력(*)")
     public ResponseEntity<?> userProfile(@PathVariable String userId) {
         try {
             UserProfileResponse response = userInfoService.findUserProfile(userId);
@@ -34,6 +38,7 @@ public class UserInfoController {
     }
 
     @PatchMapping("/{userId}/profile")
+    @Operation(summary = "프로필 수정(회원용)", description = "프로필(개인정보 포함) 수정(*)")
     public ResponseEntity<?> userProfileEdit(@PathVariable String userId,
             @RequestBody UserProfileRequest userProfileRequest) {
         try {
@@ -47,6 +52,7 @@ public class UserInfoController {
     }
 
     @GetMapping("/{userId}/preview")
+    @Operation(summary = "프로필 조회(비회원용)", description = "프로필(개인정보 미포함) 출력(*)")
     public ResponseEntity<?> userProfilePreview(@PathVariable String userId) {
         try {
             UserPreviewResponse response = userInfoService.findUserPreview(userId);

@@ -33,12 +33,12 @@ public class HashBoard {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", referencedColumnName = "id", nullable = false)
-    @MapsId
+    @MapsId("postId")
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false)
-    @MapsId
+    @MapsId("tagId")
     private HashTag tag;
     // equals, hashcode
 

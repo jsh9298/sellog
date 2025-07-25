@@ -1,6 +1,10 @@
 package com.teamproject.sellog.domain.post.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,16 +36,33 @@ public class PostService {
     @Transactional
     public void posting(PostRequestDto dto) {
         Post post = createPost(dto);
-        postRepository.save(post);
-        if (dto.getTagNames() != null && dto.getTagNames().length > 0) {
+        if (dto.getTagNames() != null && dto.getTagNames().size() > 0) {
             addTagsToPost(post, dto.getTagNames());
         }
-
+        postRepository.save(post);
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPost() {
-        return null;
+    public PostResponseDto getPost(UUID postId) {
+        List<String> tagNames = new ArrayList<String>();
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        Set<HashBoard> hashBoards = post.getHashBoard();
+        for (HashBoard hashBoard : hashBoards) {
+            Optional<HashTag> tag = tagRepository.findByHashBoard(hashBoard);
+            if (tag.isPresent()) {
+                tagNames.add(tag.get().getTagName());
+            }
+        }
+        return PostResponseDto.builder()
+                .type(post.getPostType())
+                .title(post.getTitle())
+                .userId(post.getAuthor().getUserId())
+                .contents(post.getContent())
+                .tagNames(tagNames)
+                .place(post.getPlace())
+                .price(post.getPrice())
+                .build();
     }
 
     private User getUser(String userId) {
@@ -62,7 +83,7 @@ public class PostService {
         return post;
     }
 
-    private void addTagsToPost(Post post, String[] tags) {
+    private void addTagsToPost(Post post, List<String> tags) {
         for (String tagName : tags) {
             HashTag tag = tagRepository.findByTagName(tagName)
                     .orElseGet(() -> {
@@ -71,8 +92,6 @@ public class PostService {
                         return tagRepository.save(newTag);
                     });
             HashBoard board = new HashBoard();
-            board.setPost(post);
-            board.setTag(tag);
             post.addHash(board);
             tag.addHash(board);
         }

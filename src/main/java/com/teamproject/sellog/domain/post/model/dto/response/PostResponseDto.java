@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.post.model.dto.response;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 
@@ -20,8 +21,7 @@ public class PostResponseDto {
     private String userId;
 
     private String contents;
-    private String thumbnail;
-    private String[] tagNames;
+    private List<String> tagNames;
 
     private String place;
     private BigInteger price;

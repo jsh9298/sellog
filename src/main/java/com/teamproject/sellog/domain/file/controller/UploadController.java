@@ -2,6 +2,7 @@ package com.teamproject.sellog.domain.file.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,16 +17,20 @@ import com.teamproject.sellog.domain.file.model.FileResponse;
 import com.teamproject.sellog.domain.file.model.FileTarget;
 import com.teamproject.sellog.domain.file.service.AzureBlobService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Tag(name = "파일", description = "사이트 공용 파일 업로드 api")
 public class UploadController {
 
     private final AzureBlobService azureBlobService;
 
-    @PostMapping("/file/{userId}")
+    @PostMapping(value = "/file/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "업로드", description = "단일 파일 업로드시 사용(*)")
     public ResponseEntity<?> upload(@PathVariable String userId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("fileType") FileTarget fileType) {
@@ -37,7 +42,8 @@ public class UploadController {
         }
     }
 
-    @PostMapping("/file/{userId}/multi")
+    @PostMapping(value = "/file/{userId}/multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "업로드", description = "복수 파일 업로드시 사용(*)")
     public ResponseEntity<?> uploadMultiple(@PathVariable String userId,
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("fileType") FileTarget fileType) {
@@ -51,6 +57,7 @@ public class UploadController {
     }
 
     @DeleteMapping("/file/{userId}/{fileHash}")
+    @Operation(summary = "삭제", description = "단일 파일 삭제시 사용(*)")
     public ResponseEntity<?> deleteFile(@PathVariable String userId, @PathVariable String fileHash) {
         boolean deleted = azureBlobService.deleteFile(userId, fileHash);
         if (deleted)

@@ -131,16 +131,12 @@ public class Post {
 
     public void addHash(HashBoard hashBoard) {
         this.hashBoard.add(hashBoard);
-        if (hashBoard.getPost() != this) {
-            hashBoard.setPost(this);
-        }
+        hashBoard.setPost(this);
     }
 
     public void removeHash(HashBoard hashBoard) {
         this.hashBoard.remove(hashBoard);
-        if (hashBoard.getPost() == this) {
-            hashBoard.setPost(null);
-        }
+        hashBoard.setPost(null);
     }
 
     // equals, hashcode

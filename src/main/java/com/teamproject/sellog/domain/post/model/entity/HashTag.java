@@ -39,16 +39,12 @@ public class HashTag {
 
     public void addHash(HashBoard hashBoard) {
         this.hashBoard.add(hashBoard);
-        if (hashBoard.getTag() != this) {
-            hashBoard.setTag(this);
-        }
+        hashBoard.setTag(this);
     }
 
     public void removeHash(HashBoard hashBoard) {
         this.hashBoard.remove(hashBoard);
-        if (hashBoard.getTag() == this) {
-            hashBoard.setTag(null);
-        }
+        hashBoard.setTag(null);
     }
 
     // equals, hashcode
