@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.post.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.teamproject.sellog.common.CheckStatus;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
 import com.teamproject.sellog.domain.post.model.entity.HashBoard;
@@ -19,27 +21,30 @@ import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.TagRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
+import com.teamproject.sellog.mapper.PostMapper;
 
 @Service
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final PostMapper postMapper;
 
     public PostService(final PostRepository postRepository,
-            final UserRepository userRepository, final TagRepository tagRepository) {
+            final UserRepository userRepository, final TagRepository tagRepository, final PostMapper postMapper) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.tagRepository = tagRepository;
+        this.postMapper = postMapper;
     }
 
     @Transactional
     public void posting(PostRequestDto dto) {
         Post post = createPost(dto);
+        postRepository.save(post);
         if (dto.getTagNames() != null && dto.getTagNames().size() > 0) {
             addTagsToPost(post, dto.getTagNames());
         }
-        postRepository.save(post);
     }
 
     @Transactional(readOnly = true)
@@ -54,15 +59,7 @@ public class PostService {
                 tagNames.add(tag.get().getTagName());
             }
         }
-        return PostResponseDto.builder()
-                .type(post.getPostType())
-                .title(post.getTitle())
-                .userId(post.getAuthor().getUserId())
-                .contents(post.getContent())
-                .tagNames(tagNames)
-                .place(post.getPlace())
-                .price(post.getPrice())
-                .build();
+        return postMapper.EntityToResponse(post, tagNames);
     }
 
     private User getUser(String userId) {
@@ -94,6 +91,44 @@ public class PostService {
             HashBoard board = new HashBoard();
             post.addHash(board);
             tag.addHash(board);
+        }
+    }
+
+    private void removeTagsToPost(Post post) {
+        Set<HashBoard> hashBoardsToRemove = new HashSet<>(post.getHashBoard());
+
+        for (HashBoard board : hashBoardsToRemove) {
+            HashTag tag = board.getTag();
+
+            post.removeHash(board);
+            tag.removeHash(board);
+        }
+    }
+
+    @Transactional
+    public PostResponseDto editPost(UUID postId, PostRequestDto dto, String userId) throws IllegalAccessException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+        if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
+            List<String> tagNames = null;
+            postMapper.updatePostFromRequest(post, dto);
+            removeTagsToPost(post);
+            if (dto.getTagNames() != null) {
+                tagNames = dto.getTagNames();
+                addTagsToPost(post, tagNames);
+            }
+            return postMapper.EntityToResponse(post, tagNames);
+        }
+        throw new IllegalAccessException("Permission deny");
+
+    }
+
+    @Transactional
+    public void deletePost(UUID postId, String userId) throws IllegalAccessException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+        if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
+            postRepository.delete(post);
+        } else {
+            throw new IllegalAccessException("Permission deny");
         }
     }
 }

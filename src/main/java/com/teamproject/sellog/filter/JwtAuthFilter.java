@@ -25,7 +25,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebFilter(urlPatterns = { "/api/*", "/auth/delete" })
+@WebFilter(urlPatterns = { "/api/**", "/auth/delete" })
 @Component
 @Order(2)
 public class JwtAuthFilter implements Filter {
@@ -78,6 +78,8 @@ public class JwtAuthFilter implements Filter {
                         request.setAttribute("authenticatedUser", userOptional.get());
                         request.setAttribute("authenticatedUserRole", userOptional.get().getRole());
                         request.setAttribute("authenticatedUserAccountState", userOptional);
+                        request.setAttribute("authenticatedUserStatus", userOptional.get().getAccountStatus());
+                        request.setAttribute("authenticatedUserVisibility", userOptional.get().getAccountVisibility());
                     } else {
                         res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not found");
                         return;

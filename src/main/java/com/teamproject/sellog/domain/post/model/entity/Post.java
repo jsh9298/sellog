@@ -139,8 +139,6 @@ public class Post {
         hashBoard.setPost(null);
     }
 
-    // equals, hashcode
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

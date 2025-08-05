@@ -21,6 +21,7 @@ import com.teamproject.sellog.domain.post.service.PostService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -65,16 +66,31 @@ public class PostController {
         }
     }
 
-    @PatchMapping("/post")
+    @PatchMapping("/post/{postId}")
     @Operation(summary = "수정", description = "게시글 수정시 사용(-)")
-    public ResponseEntity<?> editPost() {
-        return null;
+    public ResponseEntity<?> editPost(@PathVariable UUID postId, HttpServletRequest request,
+            @RequestBody PostRequestDto dto) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        try {
+            PostResponseDto response = postService.editPost(postId, dto, userId);
+            return ResponseEntity.ok(new RestResponse<>(true, "200", "edit post success", response));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
+        }
+
     }
 
-    @DeleteMapping("/post")
+    @DeleteMapping("/post/{postId}")
     @Operation(summary = "삭제", description = "게시글 삭제시 사용(-)")
-    public ResponseEntity<?> deletePost() {
-        return null;
+    public ResponseEntity<?> deletePost(@PathVariable UUID postId, HttpServletRequest request) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        try {
+            postService.deletePost(postId, userId);
+            return ResponseEntity.ok(new RestResponse<>(true, "200", "delete post success", null));
+        } catch (Exception e) {
+            return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
+        }
+
     }
 
 }
