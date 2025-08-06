@@ -51,6 +51,8 @@ public class UserInfoService {
                 } else {
                     return UserProfileResponse.builder().profileMessage("이 계정은 비공개 상태입니다.").build();
                 }
+            } else if (CheckStatus.checkStatus(user) == AccountStatus.INACTIVE) {
+                return UserProfileResponse.builder().profileMessage("이 계정은 비활성 상태입니다.").build();
             } else {
                 UserProfile userProfile = user.getUserProfile();
                 UserPrivate userPrivate = user.getUserPrivate();
@@ -84,6 +86,13 @@ public class UserInfoService {
             userProfile = new UserProfile();
             userProfile.setNickname(user.getUserProfile().getNickname());
             userProfile.setProfileMessage("이 계정은 비공개 상태입니다.");
+            userProfile.setProfileThumbURL(user.getUserProfile().getProfileThumbURL());
+            userProfile.setProfileURL(user.getUserProfile().getProfileURL());
+            userProfile.setScore(null);
+        } else if (CheckStatus.checkStatus(user) == AccountStatus.INACTIVE) {
+            userProfile = new UserProfile();
+            userProfile.setNickname(user.getUserProfile().getNickname());
+            userProfile.setProfileMessage("이 계정은 비활성 상태입니다.");
             userProfile.setProfileThumbURL(user.getUserProfile().getProfileThumbURL());
             userProfile.setProfileURL(user.getUserProfile().getProfileURL());
             userProfile.setScore(null);

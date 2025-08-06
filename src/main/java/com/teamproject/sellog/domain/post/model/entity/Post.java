@@ -139,6 +139,36 @@ public class Post {
         hashBoard.setPost(null);
     }
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<PostFeedbackList> feedBacks = new HashSet<>();
+
+    public boolean addFeedBack(PostFeedbackList feedBack, FeedBackType type) {
+        for (PostFeedbackList feedbackList : this.feedBacks) {
+            if (feedbackList.equals(feedBack)) {
+                return false; // 피드백 종류 상관없이 존재하면 false
+            }
+        }
+        this.feedBacks.add(feedBack);
+        feedBack.setPost(this);
+        feedBack.setType(type); // 받은 타입으로 추가
+        return true;
+    }
+
+    public boolean removeFeedBack(PostFeedbackList feedBack, FeedBackType type) {
+        PostFeedbackList postFeedbackList = null;
+        for (PostFeedbackList feedbackList : this.feedBacks) {
+            if (feedbackList.equals(feedBack)) {
+                postFeedbackList = feedbackList; // 피드백 종류 상관없이 일단 탐색
+                break;
+            }
+        }
+        if (postFeedbackList != null && postFeedbackList.getType() == type) { // 종류까지 같으면 삭제
+            this.feedBacks.remove(feedBack);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

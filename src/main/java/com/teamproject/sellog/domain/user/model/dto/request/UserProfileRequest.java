@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.dto.request;
 
+import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;
 import com.teamproject.sellog.domain.user.model.entity.user.Gender;
 
 import lombok.AllArgsConstructor;
@@ -22,4 +23,5 @@ public final class UserProfileRequest {
     private final String email;
     private final String phoneNumber;
     private final String userAddress;
+    private final AccountVisibility accountVisibility;
 }

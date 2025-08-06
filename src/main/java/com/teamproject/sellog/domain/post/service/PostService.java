@@ -1,27 +1,41 @@
 package com.teamproject.sellog.domain.post.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.CheckStatus;
+import com.teamproject.sellog.common.CursorPageResponse;
+import com.teamproject.sellog.domain.post.model.SortKey;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
+import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
+import com.teamproject.sellog.domain.post.model.entity.FeedBackType;
 import com.teamproject.sellog.domain.post.model.entity.HashBoard;
 import com.teamproject.sellog.domain.post.model.entity.HashTag;
 import com.teamproject.sellog.domain.post.model.entity.Post;
+import com.teamproject.sellog.domain.post.model.entity.PostFeedbackList;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.TagRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 import com.teamproject.sellog.mapper.PostMapper;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class PostService {
@@ -48,7 +62,25 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public PostResponseDto getPost(UUID postId) {
+    public PostResponseDto getPost(UUID postId, Cookie postViewCookie, HttpServletResponse response) {
+
+        if (postViewCookie != null) {
+            if (!postViewCookie.getValue().contains("[" + postId + "]")) {
+                postRepository.updateViewCount(postId);
+                postViewCookie.setValue(postViewCookie.getValue() + "_[" + postId + "]");
+                postViewCookie.setPath("/");
+                postViewCookie.setMaxAge(60 * 60 * 24);
+                response.addCookie(postViewCookie);
+            }
+
+        } else {
+            postRepository.updateViewCount(postId); // [2]
+            Cookie newCookie = new Cookie("postView", "[" + postId + "]");
+            newCookie.setPath("/");
+            newCookie.setMaxAge(60 * 60 * 24);
+            response.addCookie(newCookie);
+        }
+
         List<String> tagNames = new ArrayList<String>();
         Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
@@ -130,5 +162,67 @@ public class PostService {
         } else {
             throw new IllegalAccessException("Permission deny");
         }
+    }
+
+    @Transactional
+    public void toggleLike(UUID postId, String userId) throws IllegalAccessException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+        if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
+            throw new IllegalAccessException("Can't toggleed own post");
+        }
+        PostFeedbackList feedback = new PostFeedbackList();
+        feedback.setPost(post);
+        feedback.setUserId(userId);
+        feedback.setType(FeedBackType.LIKE);
+        if (post.addFeedBack(feedback, FeedBackType.LIKE)) {
+            return;
+        } else if (post.removeFeedBack(feedback, FeedBackType.LIKE)) {
+            return;
+        } else {
+            throw new IllegalArgumentException("you already disliked this post");
+        }
+    }
+
+    @Transactional
+    public void toggleDisLike(UUID postId, String userId) throws IllegalAccessException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+        if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
+            throw new IllegalAccessException("Can't toggleed own post");
+        }
+        PostFeedbackList feedback = new PostFeedbackList();
+        feedback.setPost(post);
+        feedback.setUserId(userId);
+        feedback.setType(FeedBackType.DISLIKE);
+        if (post.addFeedBack(feedback, FeedBackType.DISLIKE)) {
+            return;
+        } else if (post.removeFeedBack(feedback, FeedBackType.DISLIKE)) {
+            return;
+        } else {
+            throw new IllegalArgumentException("you already liked this post");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public CursorPageResponse<PostListResponseDto> listPost(SortKey sort, PostType type, Timestamp lastCreateAt,
+            UUID lastId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
+        List<Post> posts;
+        if (lastCreateAt == null && lastId == null) {
+            posts = postRepository.findByPostIdAndCursor();
+        } else {
+            posts = postRepository.findByPostIdAndCursor();
+        }
+
+        List<PostListResponseDto> postDto = posts.stream().map(postMapper::toPostResponse).collect(Collectors.toList());
+        boolean hasNext = posts.size() == limit;
+        Timestamp nextCreateAt = null;
+        UUID nextId = null;
+        if (hasNext) {
+            Post lastPost = posts.get(posts.size() - 1);
+            nextCreateAt = lastPost.getCreateAt();
+            nextId = lastPost.getId();
+        }
+
+        return new CursorPageResponse<>(postDto, hasNext, nextCreateAt, nextId);
     }
 }
