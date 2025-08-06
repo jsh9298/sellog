@@ -208,7 +208,7 @@ public class PostService {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
         List<Post> posts;
         if (lastCreateAt == null && lastId == null) {
-            posts = postRepository.findByPostIdAndCursor();
+            posts = postRepository.findByPostIdAndCursor(); // 기본 정렬
         } else {
             posts = postRepository.findByPostIdAndCursor();
         }
