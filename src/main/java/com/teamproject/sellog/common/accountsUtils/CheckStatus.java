@@ -1,4 +1,4 @@
-package com.teamproject.sellog.common;
+package com.teamproject.sellog.common.accountsUtils;
 
 import com.teamproject.sellog.domain.user.model.entity.user.AccountStatus;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;

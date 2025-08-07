@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.teamproject.sellog.common.locationUtils.Location;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.persistence.CascadeType;
@@ -30,6 +31,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
+
 @Entity
 @Getter
 @Setter
@@ -48,11 +54,16 @@ public class Post {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "price", nullable = false) // null처리 어카노..
+    @Column(name = "price", nullable = false)
     private BigInteger price = BigInteger.ZERO;
 
-    @Column(name = "place", nullable = false) // null처리 어카노..
+    @Column(name = "place", nullable = false)
     private String place = " ";
+
+    @Column(name = "location", nullable = true)
+    private Location location;
+    @Column(name = "location_point", nullable = true)
+    private Point locationPoint;
 
     @Column(name = "content", nullable = false)
     private String content;
@@ -112,6 +123,14 @@ public class Post {
 
     @PrePersist
     public void onCreate() {
+        if (this.location != null) {
+            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+            Coordinate coordinate = new Coordinate(this.location.getLongitude(), this.location.getLatitude());
+            this.locationPoint = geometryFactory.createPoint(coordinate);
+        } else {
+            this.locationPoint = null;
+        }
+
         if (this.createAt == null) {
             this.createAt = Timestamp.valueOf(LocalDateTime.now());
         }
@@ -123,6 +142,13 @@ public class Post {
 
     @PreUpdate
     public void onUpdate() {
+        if (this.location != null) {
+            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
+            Coordinate coordinate = new Coordinate(this.location.getLongitude(), this.location.getLatitude());
+            this.locationPoint = geometryFactory.createPoint(coordinate);
+        } else {
+            this.locationPoint = null;
+        }
         this.updateAt = Timestamp.valueOf(LocalDateTime.now());
     }
 

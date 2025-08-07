@@ -1,4 +1,4 @@
-package com.teamproject.sellog.common;
+package com.teamproject.sellog.common.accountsUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 

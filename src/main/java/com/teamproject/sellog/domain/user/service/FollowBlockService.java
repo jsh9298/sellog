@@ -11,7 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.common.CursorPageResponse;
+import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
 import com.teamproject.sellog.domain.user.model.entity.friend.Block;

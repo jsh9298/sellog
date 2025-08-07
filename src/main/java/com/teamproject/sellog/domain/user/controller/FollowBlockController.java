@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.CursorPageResponse;
-import com.teamproject.sellog.common.RestResponse;
+import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
+import com.teamproject.sellog.common.dtoUtils.RestResponse;
 import com.teamproject.sellog.domain.user.model.dto.request.OtherUserIdRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.teamproject.sellog.common.TokenExtractor;
+import com.teamproject.sellog.common.accountsUtils.TokenExtractor;
 import com.teamproject.sellog.domain.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.domain.auth.service.AuthService;
 import com.teamproject.sellog.domain.user.model.entity.user.User;

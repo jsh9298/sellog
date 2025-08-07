@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.CheckStatus;
-import com.teamproject.sellog.common.RestResponse;
+import com.teamproject.sellog.common.accountsUtils.CheckStatus;
+import com.teamproject.sellog.common.dtoUtils.RestResponse;
 import com.teamproject.sellog.domain.user.model.dto.request.UserProfileRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.UserPreviewResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.UserProfileResponse;

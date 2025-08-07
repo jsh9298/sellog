@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
@@ -16,8 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.common.CheckStatus;
-import com.teamproject.sellog.common.CursorPageResponse;
+import com.teamproject.sellog.common.accountsUtils.CheckStatus;
+import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
 import com.teamproject.sellog.domain.post.model.SortKey;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
@@ -208,9 +207,9 @@ public class PostService {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
         List<Post> posts;
         if (lastCreateAt == null && lastId == null) {
-            posts = postRepository.findByPostIdAndCursor(); // 기본 정렬
+            posts = postRepository.findByIdDesc(pageable); // 기본 정렬
         } else {
-            posts = postRepository.findByPostIdAndCursor();
+            posts = postRepository.findByIdAndCursor(lastCreateAt, lastId, pageable);
         }
 
         List<PostListResponseDto> postDto = posts.stream().map(postMapper::toPostResponse).collect(Collectors.toList());

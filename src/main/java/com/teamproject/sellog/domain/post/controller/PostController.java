@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.RestResponse;
+import com.teamproject.sellog.common.dtoUtils.RestResponse;
 import com.teamproject.sellog.domain.post.model.SortKey;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;

@@ -3,7 +3,7 @@ package com.teamproject.sellog.domain.user.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.common.CheckStatus;
+import com.teamproject.sellog.common.accountsUtils.CheckStatus;
 import com.teamproject.sellog.domain.user.model.dto.UserContentCount;
 import com.teamproject.sellog.domain.user.model.dto.request.UserProfileRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.UserPreviewResponse;

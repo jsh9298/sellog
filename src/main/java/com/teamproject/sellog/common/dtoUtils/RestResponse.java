@@ -1,4 +1,4 @@
-package com.teamproject.sellog.common;
+package com.teamproject.sellog.common.dtoUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

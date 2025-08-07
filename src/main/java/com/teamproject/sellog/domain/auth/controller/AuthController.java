@@ -1,7 +1,7 @@
 package com.teamproject.sellog.domain.auth.controller;
 
-import com.teamproject.sellog.common.RestResponse;
-import com.teamproject.sellog.common.TokenExtractor;
+import com.teamproject.sellog.common.accountsUtils.TokenExtractor;
+import com.teamproject.sellog.common.dtoUtils.RestResponse;
 import com.teamproject.sellog.domain.auth.model.dto.request.CheckIdDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserDeleteDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserFindIdDto;

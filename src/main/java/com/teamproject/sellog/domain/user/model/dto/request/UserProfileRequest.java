@@ -23,5 +23,7 @@ public final class UserProfileRequest {
     private final String email;
     private final String phoneNumber;
     private final String userAddress;
+    private final Double latitude;
+    private final Double longitude;
     private final AccountVisibility accountVisibility;
 }
