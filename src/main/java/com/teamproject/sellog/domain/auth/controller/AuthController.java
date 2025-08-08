@@ -44,7 +44,7 @@ public class AuthController {
     }
 
     @PostMapping("/checkId")
-    @Operation(summary = "아이디 중복 체크", description = "아이디 중복 체크(*)")
+    @Operation(summary = "아이디 중복 체크(*)", description = "아이디 중복 체크")
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
         if (!authService.checkId(checkIdDto.getUserId())) {
             return ResponseEntity.ok(new RestResponse<>(true, "200", "You can use this Id", null));
@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "회원가입", description = "회원가입(*)")
+    @Operation(summary = "회원가입(*)", description = "회원가입")
     public ResponseEntity<?> register(@RequestBody UserRegisterDto UserRegisterDto) {
         try {
             authService.registerUser(UserRegisterDto);
@@ -70,7 +70,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "로그인", description = "로그인, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 발급(*)")
+    @Operation(summary = "로그인(*)", description = "로그인, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 발급")
     public ResponseEntity<?> login(@RequestBody UserLoginDto userLoginDto) {
         try {
             UserLoginResponse jwtTokens = authService.loginUser(userLoginDto);
@@ -99,7 +99,7 @@ public class AuthController {
 
     // 로그아웃 엔드포인트
     @PostMapping("/logout")
-    @Operation(summary = "로그아웃", description = "로그아웃, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 블랙리스트 추가(*)")
+    @Operation(summary = "로그아웃(*)", description = "로그아웃, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 블랙리스트 추가")
     public ResponseEntity<?> logout(HttpServletRequest request) {
 
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
@@ -137,7 +137,7 @@ public class AuthController {
 
     // 회원 탈퇴 엔드포인트
     @PostMapping("/delete")
-    @Operation(summary = "회원탈퇴", description = "회원탈퇴, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 블랙리스트 추가, 회원정보 삭제(*)")
+    @Operation(summary = "회원탈퇴(*)", description = "회원탈퇴, 엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 블랙리스트 추가, 회원정보 삭제")
     public ResponseEntity<?> deleteUser(@RequestBody UserDeleteDto userDeleteDto, HttpServletRequest request) {
         String accessToken = TokenExtractor.extractTokenFromHeader(request); // 요청 헤더에서 액세스 토큰 추출
         String refreshToken = null;
@@ -187,7 +187,7 @@ public class AuthController {
 
     // 토큰 갱신 엔드포인트 (리프레시 토큰 기반) //수정 필요.
     @PostMapping("/refresh")
-    @Operation(summary = "토큰 재발급", description = "엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 재발급(*)")
+    @Operation(summary = "토큰 재발급(*)", description = "엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 재발급")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         try {
             String refreshToken = "";
@@ -227,7 +227,7 @@ public class AuthController {
 
     // 아이디 검색 엔드포인트
     @PostMapping("/find")
-    @Operation(summary = "회원아이디 찾기", description = "자신의 아이디 마저 잊어버리는 금붕어들을 위한 api(*)")
+    @Operation(summary = "회원아이디 찾기(*)", description = "자신의 아이디 마저 잊어버리는 금붕어들을 위한 api")
     public ResponseEntity<?> findUserId(@RequestBody UserFindIdDto userFindIdDto) {
         try {
             String userId = authService.findUserId(userFindIdDto.getEmail());
@@ -242,7 +242,7 @@ public class AuthController {
     /* 이메일 인증과 연동되어야함. */
 
     @PatchMapping("/password")
-    @Operation(summary = "회원비밀번호 찾기", description = "찾기라 쓰고, 변경이라 읽는다. 이메일 인증은 언제 추가하지..(*)")
+    @Operation(summary = "회원비밀번호 찾기(*)", description = "찾기라 쓰고, 변경이라 읽는다. 이메일 인증은 언제 추가하지..")
     public ResponseEntity<?> changePassword(@RequestBody UserPasswordDto userPasswordDto) {
         try {
             authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getEmail(),

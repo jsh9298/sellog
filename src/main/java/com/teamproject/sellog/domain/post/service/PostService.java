@@ -205,6 +205,9 @@ public class PostService {
     public CursorPageResponse<PostListResponseDto> listPost(SortKey sort, PostType type, Timestamp lastCreateAt,
             UUID lastId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
+
+        // 정렬 기준 완전하게 정해지기 전까지는 중지
+
         List<Post> posts;
         if (lastCreateAt == null && lastId == null) {
             posts = postRepository.findByIdDesc(pageable); // 기본 정렬

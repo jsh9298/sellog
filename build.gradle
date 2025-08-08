@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.teamproject'
-version = '0.0.2-SNAPSHOT'
+version = 'dev0.0.3-SNAPSHOT'
 
 java {
 	toolchain {
@@ -28,6 +28,7 @@ ext {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'

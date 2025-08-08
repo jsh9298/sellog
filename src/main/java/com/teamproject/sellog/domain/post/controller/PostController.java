@@ -39,7 +39,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/post")
-    @Operation(summary = "목록", description = "게시글 목록(-)")
+    @Operation(summary = "목록(-)", description = "게시글 목록 - 현재 정렬 기준 종류 정하는 중. 추천 시스템의 경우 python으로 외부 서버로 구현할까 고민중..")
     public ResponseEntity<?> postList(
             @RequestParam(required = false) List<SortKey> sort,
             @RequestParam(required = false) PostType type,
@@ -51,7 +51,7 @@ public class PostController {
     }
 
     @GetMapping("/post/{postId}")
-    @Operation(summary = "읽기", description = "게시글 내용 보기(+) 조회수 정책은 cookie로 판별 예정")
+    @Operation(summary = "읽기(+)", description = "게시글 내용 보기 조회수 정책은 cookie로 판별 예정")
     public ResponseEntity<?> getPost(@PathVariable UUID postId,
             @CookieValue(value = "postView", required = false) Cookie postViewCookie, HttpServletResponse response) {
         try {
@@ -63,7 +63,7 @@ public class PostController {
     }
 
     @PostMapping("/post")
-    @Operation(summary = "업로드", description = "게시글 업로드시 사용(+)")
+    @Operation(summary = "업로드(+)", description = "게시글 업로드시 사용")
     public ResponseEntity<?> posting(@RequestBody PostRequestDto postRequestDto) {
         try {
             postService.posting(postRequestDto);
@@ -74,7 +74,7 @@ public class PostController {
     }
 
     @PatchMapping("/post/{postId}")
-    @Operation(summary = "수정", description = "게시글 수정시 사용(+)")
+    @Operation(summary = "수정(+)", description = "게시글 수정시 사용")
     public ResponseEntity<?> editPost(@PathVariable UUID postId, HttpServletRequest request,
             @RequestBody PostRequestDto dto) {
         String userId = request.getAttribute("authenticatedUserId").toString();
@@ -88,7 +88,7 @@ public class PostController {
     }
 
     @DeleteMapping("/post/{postId}")
-    @Operation(summary = "삭제", description = "게시글 삭제시 사용(+)")
+    @Operation(summary = "삭제(+)", description = "게시글 삭제시 사용")
     public ResponseEntity<?> deletePost(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         try {
@@ -101,7 +101,7 @@ public class PostController {
     }
 
     @PatchMapping("/post/{postId}/like")
-    @Operation(summary = "좋아요 토글", description = "좋아요 토글(-)")
+    @Operation(summary = "좋아요 토글(-)", description = "좋아요 토글")
     public ResponseEntity<?> toggleLike(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         try {
@@ -114,7 +114,7 @@ public class PostController {
     }
 
     @PatchMapping("/post/{postId}/dislike")
-    @Operation(summary = "싫어요 토글", description = "싫어요 토글(-) 스팩에는 없지만 혹시 몰라서 만들어둠")
+    @Operation(summary = "싫어요 토글(-)", description = "싫어요 토글 스팩에는 없지만 혹시 몰라서 만들어둠")
     public ResponseEntity<?> toggleDislike(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         try {

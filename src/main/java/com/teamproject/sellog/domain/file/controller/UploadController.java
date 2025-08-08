@@ -31,7 +31,7 @@ public class UploadController {
     private final AzureBlobService azureBlobService;
 
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "업로드", description = "단일 파일 업로드시 사용(+)")
+    @Operation(summary = "업로드(+)", description = "단일 파일 업로드시 사용")
     public ResponseEntity<?> upload(HttpServletRequest request,
             @RequestParam("file") MultipartFile file,
             @RequestParam("fileType") FileTarget fileType) {
@@ -45,7 +45,7 @@ public class UploadController {
     }
 
     @PostMapping(value = "/file/multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "업로드", description = "복수 파일 업로드시 사용(+)")
+    @Operation(summary = "업로드(+)", description = "복수 파일 업로드시 사용")
     public ResponseEntity<?> uploadMultiple(HttpServletRequest request,
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam("fileType") FileTarget fileType) {
@@ -60,7 +60,7 @@ public class UploadController {
     }
 
     @DeleteMapping("/file/{fileHash}")
-    @Operation(summary = "삭제", description = "단일 파일 삭제시 사용(+)")
+    @Operation(summary = "삭제(+)", description = "단일 파일 삭제시 사용")
     public ResponseEntity<?> deleteFile(HttpServletRequest request, @PathVariable String fileHash) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         boolean deleted = azureBlobService.deleteFile(userId, fileHash);

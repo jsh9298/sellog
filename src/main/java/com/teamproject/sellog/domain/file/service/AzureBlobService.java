@@ -110,6 +110,29 @@ public class AzureBlobService {
             }
         });
 
+        if (existing.isPresent()) {
+            char[] ca1 = null;
+            char[] ca2 = null;
+            switch (fileTarget.name().toLowerCase()) {
+                case "profile":
+                    ca1 = existing.get().getBlobPath().get(1).toCharArray();
+                    break;
+                case "post":
+                    ca1 = existing.get().getBlobPath().get(2).toCharArray();
+                    break;
+                case "chat":
+                    ca1 = existing.get().getBlobPath().get(3).toCharArray();
+                    break;
+            }
+            ca2 = existing.get().getBlobPath().get(0).toCharArray();
+
+            for (char c1 : ca1) {
+                outFilePath.append(c1);
+            }
+            for (char c2 : ca2) {
+                originFilePath.append(c2);
+            }
+        }
         // return createResponse(meta, file, fileTarget, fileHash);
 
         return FileResponse.builder()
