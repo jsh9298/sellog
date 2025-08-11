@@ -19,9 +19,9 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @Query("UPDATE Post p SET p.likeCnt = p.likeCnt + 1 WHERE p.id = :id")
     void updateViewCount(UUID id);
 
-    List<Post> findByIdDesc(Pageable Pageable);
+    List<Post> findAllByOrderByIdDesc(Pageable Pageable);
 
     @Query("SELECT p FROM Post p WHERE p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
-    List<Post> findByIdAndCursor(@Param("lastCreateAt") Timestamp lastCreateAt, @Param("lastId") UUID lastId,
+    List<Post> findAllByIdAndCursor(@Param("lastCreateAt") Timestamp lastCreateAt, @Param("lastId") UUID lastId,
             Pageable pageable);
 }

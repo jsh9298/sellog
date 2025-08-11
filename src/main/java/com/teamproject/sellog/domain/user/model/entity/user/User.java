@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.teamproject.sellog.domain.post.model.entity.Comment;
 import com.teamproject.sellog.domain.post.model.entity.Post;
+import com.teamproject.sellog.domain.post.model.entity.Review;
 import com.teamproject.sellog.domain.user.model.entity.friend.Block;
 import com.teamproject.sellog.domain.user.model.entity.friend.Follow;
 
@@ -226,6 +227,23 @@ public class User {
         this.comments.remove(comment);
         if (comment.getAuthor() == this) {
             comment.setAuthor(null);
+        }
+    }
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private Set<Review> reviews = new HashSet<>();
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        if (review.getAuthor() != this) {
+            review.setAuthor(this);
+        }
+    }
+
+    public void removeReview(Review review) {
+        this.reviews.remove(review);
+        if (review.getAuthor() == this) {
+            review.setAuthor(null);
         }
     }
 

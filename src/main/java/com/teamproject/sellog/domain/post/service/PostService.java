@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.accountsUtils.CheckStatus;
 import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
-import com.teamproject.sellog.domain.post.model.SortKey;
+import com.teamproject.sellog.domain.post.model.PostSort;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
@@ -202,7 +202,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<PostListResponseDto> listPost(SortKey sort, PostType type, Timestamp lastCreateAt,
+    public CursorPageResponse<PostListResponseDto> listPost(PostSort sort, PostType type, Timestamp lastCreateAt,
             UUID lastId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
 
@@ -210,9 +210,9 @@ public class PostService {
 
         List<Post> posts;
         if (lastCreateAt == null && lastId == null) {
-            posts = postRepository.findByIdDesc(pageable); // 기본 정렬
+            posts = postRepository.findAllByOrderByIdDesc(pageable); // 기본 정렬
         } else {
-            posts = postRepository.findByIdAndCursor(lastCreateAt, lastId, pageable);
+            posts = postRepository.findAllByIdAndCursor(lastCreateAt, lastId, pageable);
         }
 
         List<PostListResponseDto> postDto = posts.stream().map(postMapper::toPostResponse).collect(Collectors.toList());

@@ -1,6 +1,6 @@
 package com.teamproject.sellog.domain.post.model;
 
-public enum SortKey {
+public enum PostSort {
     AREA, CREATE, LIKECNT,
 }
 

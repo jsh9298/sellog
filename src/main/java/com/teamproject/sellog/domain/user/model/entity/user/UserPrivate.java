@@ -46,8 +46,12 @@ public class UserPrivate {
 
     @Column(name = "user_address", nullable = true)
     private String userAddress;
-    @Column(name = "location", nullable = true)
-    private Location location;
+
+    @Column(name = "location_latitude", nullable = true)
+    private Double latitude;
+    @Column(name = "location_longitude", nullable = true)
+    private Double longitude;
+
     @Column(name = "location_point", nullable = true)
     private Point locationPoint;
 
@@ -79,7 +83,7 @@ public class UserPrivate {
 
     @PreUpdate
     public void onUpdate() {
-        if (this.location != null) {
+        if (this.latitude != null && this.longitude != null) {
             // GeometryFactory는 Point 객체를 생성하는 데 사용됩니다.
             // PrecisionModel: 공간 데이터의 정밀도를 정의합니다.
             // SRID (Spatial Reference ID): 좌표계 정보를 나타냅니다.
@@ -88,7 +92,7 @@ public class UserPrivate {
             GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
             // JTS Coordinate 객체는 (경도 X, 위도 Y) 순서로 인자를 받습니다.
-            Coordinate coordinate = new Coordinate(this.location.getLongitude(), this.location.getLatitude());
+            Coordinate coordinate = new Coordinate(this.longitude, this.latitude);
 
             // Point 객체를 생성하고 `locationPoint` 필드에 설정합니다.
             this.locationPoint = geometryFactory.createPoint(coordinate);

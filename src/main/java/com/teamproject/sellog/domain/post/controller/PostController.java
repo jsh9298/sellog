@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.teamproject.sellog.common.dtoUtils.RestResponse;
-import com.teamproject.sellog.domain.post.model.SortKey;
+import com.teamproject.sellog.domain.post.model.PostSort;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
@@ -41,7 +41,7 @@ public class PostController {
     @GetMapping("/post")
     @Operation(summary = "목록(-)", description = "게시글 목록 - 현재 정렬 기준 종류 정하는 중. 추천 시스템의 경우 python으로 외부 서버로 구현할까 고민중..")
     public ResponseEntity<?> postList(
-            @RequestParam(required = false) List<SortKey> sort,
+            @RequestParam(required = false) List<PostSort> sort,
             @RequestParam(required = false) PostType type,
             @RequestParam(required = false) Timestamp lastCreateAt,
             @RequestParam(required = false) UUID lastId,

@@ -33,8 +33,8 @@ public class UserMapDistance {
         double nowLatitude = customerLocation.getLatitude(); // 현재 위도 = y 좌표
         double nowLongitude = customerLocation.getLongitude(); // 현재 경도 = x 좌표
 
-        double storeLatitude = post.getLocation().getLatitude(); // 현재 위도 = y 좌표
-        double storeLongitude = post.getLocation().getLongitude(); // 현재 경도 = x 좌표
+        double storeLatitude = post.getLatitude(); // 현재 위도 = y 좌표
+        double storeLongitude = post.getLongitude(); // 현재 경도 = x 좌표
 
         return GeometryUtil.calculateDistance(nowLatitude, nowLongitude, storeLatitude, storeLongitude);
     }

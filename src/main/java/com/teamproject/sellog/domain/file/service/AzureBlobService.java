@@ -90,7 +90,8 @@ public class AzureBlobService {
                 blobClient.upload(uploadStream, fileBytes.length, true);
 
                 Map<String, String> metaMap = new HashMap<>();
-                metaMap.put("orig", originalFilename); // download.png
+
+                metaMap.put("orig", encodeBase64(originalFilename)); // download.png
                 metaMap.put("mime", file.getContentType());
                 blobClient.setMetadata(metaMap);
 
@@ -181,5 +182,9 @@ public class AzureBlobService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private String encodeBase64(String str) {
+        return Base64.getEncoder().encodeToString(str.getBytes());
     }
 }

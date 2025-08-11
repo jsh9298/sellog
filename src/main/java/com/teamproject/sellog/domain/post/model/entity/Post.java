@@ -60,8 +60,11 @@ public class Post {
     @Column(name = "place", nullable = false)
     private String place = " ";
 
-    @Column(name = "location", nullable = true)
-    private Location location;
+    @Column(name = "location_latitude", nullable = true)
+    private Double latitude;
+    @Column(name = "location_longitude", nullable = true)
+    private Double longitude;
+
     @Column(name = "location_point", nullable = true)
     private Point locationPoint;
 
@@ -123,9 +126,9 @@ public class Post {
 
     @PrePersist
     public void onCreate() {
-        if (this.location != null) {
+        if (this.latitude != null && this.longitude != null) {
             GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-            Coordinate coordinate = new Coordinate(this.location.getLongitude(), this.location.getLatitude());
+            Coordinate coordinate = new Coordinate(this.longitude, this.latitude);
             this.locationPoint = geometryFactory.createPoint(coordinate);
         } else {
             this.locationPoint = null;
@@ -142,9 +145,9 @@ public class Post {
 
     @PreUpdate
     public void onUpdate() {
-        if (this.location != null) {
+        if (this.latitude != null && this.longitude != null) {
             GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-            Coordinate coordinate = new Coordinate(this.location.getLongitude(), this.location.getLatitude());
+            Coordinate coordinate = new Coordinate(this.longitude, this.latitude);
             this.locationPoint = geometryFactory.createPoint(coordinate);
         } else {
             this.locationPoint = null;

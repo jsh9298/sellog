@@ -29,10 +29,10 @@ const eventGridTrigger = async function (
   }
 
   const parsedUrl = new URL(blobUrl);
-  const pathParts = parsedUrl.pathname.split("/").filter(Boolean); // ['inputcontents', '{userId}', '{filename}'] 
-  const containerName = decodeURIComponent(pathParts[0]);    // URL 파싱 및 한글 파일명 복원
-  const userId = decodeURIComponent(pathParts[1]);
-  const blobRelativePath = decodeURIComponent(pathParts.slice(2).join("/")); // 파일명 또는 경로 포함된 이름
+  const pathParts = parsedUrl.pathname.split("/").filter(Boolean); // ['inputcontents', '{userId}', '{filename}']
+  const containerName = pathParts[0];
+  const userId = pathParts[1];
+  const blobRelativePath = pathParts.slice(2).join("/"); // 파일명 또는 경로 포함된 이름
 
   if (!userId || !blobRelativePath) {
     context.error(
@@ -58,21 +58,7 @@ const eventGridTrigger = async function (
     return;
   }
 
-
-  // 메타데이터 인코딩
-  function encodeMetadata(meta: Record<string, string> | undefined): Record<string, string> | undefined {
-    if (!meta) return undefined;
-    const safeMeta: Record<string, string> = {};
-    for (const [key, value] of Object.entries(meta)) {
-      // 키와 값 모두 ASCII로 제한 → UTF-8 percent encoding
-      safeMeta[encodeURIComponent(key)] = encodeURIComponent(value);
-    }
-    return safeMeta;
-  }
-
-
-
-  const metadata = encodeMetadata(downloadResponse.metadata);
+  const metadata = downloadResponse.metadata;
   const buffer = await streamToBuffer(downloadResponse.readableStreamBody);
 
   const ext = path.extname(blobRelativePath).toLowerCase().slice(1);
@@ -83,7 +69,7 @@ const eventGridTrigger = async function (
   const outputContainerClient =
     blobServiceClient.getContainerClient("outcontents");
 
-  const baseName = decodeURIComponent(path.basename(blobRelativePath));     // URL 파싱 및 한글 파일명 복원
+  const baseName = path.basename(blobRelativePath); // URL 파싱 및 한글 파일명 복원
 
   // 🎯 썸네일 경로
 
