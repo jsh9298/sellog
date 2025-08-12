@@ -1,4 +1,4 @@
-package com.teamproject.sellog.common.dtoUtils;
+package com.teamproject.sellog.common.responseUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

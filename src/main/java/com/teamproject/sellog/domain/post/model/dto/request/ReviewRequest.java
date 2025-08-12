@@ -15,7 +15,6 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class ReviewRequest {
     private PostType type;
-    private String userId; // 작성자
     private String contents; // md?html?
     private BigInteger score;
 }

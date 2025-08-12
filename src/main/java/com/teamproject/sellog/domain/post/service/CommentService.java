@@ -4,8 +4,9 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.domain.post.model.dto.request.CommentRequest;
-import com.teamproject.sellog.domain.post.model.dto.request.ReviewRequest;
 import com.teamproject.sellog.domain.post.model.entity.Comment;
 import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.post.repository.CommentRepository;
@@ -28,9 +29,9 @@ public class CommentService {
 
     public void review(CommentRequest dto, UUID postId, UUID commentId) {
         Comment newComment = new Comment();
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         User user = userRepository.findByUserId(dto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         newComment.setContent(dto.getContent());
         newComment.setAuthor(user);
         newComment.setPost(post);

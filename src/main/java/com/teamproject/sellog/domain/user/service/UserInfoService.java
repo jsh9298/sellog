@@ -4,6 +4,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.accountsUtils.CheckStatus;
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
+import com.teamproject.sellog.domain.user.mapper.UserInfoMapper;
 import com.teamproject.sellog.domain.user.model.dto.UserContentCount;
 import com.teamproject.sellog.domain.user.model.dto.request.UserProfileRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.UserPreviewResponse;
@@ -13,7 +16,6 @@ import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.model.entity.user.UserPrivate;
 import com.teamproject.sellog.domain.user.model.entity.user.UserProfile;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
-import com.teamproject.sellog.mapper.UserInfoMapper;
 
 @Service
 public class UserInfoService {
@@ -29,16 +31,16 @@ public class UserInfoService {
     @Transactional(readOnly = true) // 음.. 나중에 리팩토링 가능할수도
     public UserProfileResponse findUserProfile(String userId, String selfId) {
         User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if (CheckStatus.checkSelf(userId, selfId)) {
             UserProfile userProfile = user.getUserProfile();
             UserPrivate userPrivate = user.getUserPrivate();
             UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
             return userInfoMapper.EntityToResponse(userProfile, userPrivate, user, userContentCount);
         } else {
             User self = userRepository.findUserWithProfileAndPrivateByUserId(selfId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
             if (CheckStatus.isBlocking(user, self)) {
                 return UserProfileResponse.builder().profileMessage("해당 사용자에게 차단된 상태입니다.").build();
             } else if (CheckStatus.isPrivate(user)) {
@@ -46,7 +48,7 @@ public class UserInfoService {
                     UserProfile userProfile = user.getUserProfile();
                     UserPrivate userPrivate = user.getUserPrivate();
                     UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)
-                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
                     return userInfoMapper.EntityToResponse(userProfile, userPrivate, user, userContentCount);
                 } else {
                     return UserProfileResponse.builder().profileMessage("이 계정은 비공개 상태입니다.").build();
@@ -57,7 +59,7 @@ public class UserInfoService {
                 UserProfile userProfile = user.getUserProfile();
                 UserPrivate userPrivate = user.getUserPrivate();
                 UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                        .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
                 return userInfoMapper.EntityToResponse(userProfile, userPrivate, user, userContentCount);
             }
         }
@@ -66,7 +68,7 @@ public class UserInfoService {
     @Transactional
     public void editUserProfile(String userId, UserProfileRequest userProfileRequest) {
         User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         UserProfile userProfile = user.getUserProfile();
         UserPrivate userPrivate = user.getUserPrivate();
         if (user.getAccountStatus() == AccountStatus.STAY) {
@@ -81,7 +83,7 @@ public class UserInfoService {
     public UserPreviewResponse findUserPreview(String userId) {
         UserProfile userProfile = null;
         User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if (CheckStatus.isPrivate(user)) {
             userProfile = new UserProfile();
             userProfile.setNickname(user.getUserProfile().getNickname());
@@ -101,7 +103,7 @@ public class UserInfoService {
         }
 
         UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         return userInfoMapper.EntityToResponse(userProfile, userContentCount);
     }
 }

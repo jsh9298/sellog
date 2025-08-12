@@ -1,4 +1,4 @@
-package com.teamproject.sellog.mapper;
+package com.teamproject.sellog.domain.post.mapper;
 
 import java.util.List;
 
@@ -22,24 +22,3 @@ public interface PostMapper {
 
     PostListResponseDto toPostResponse(Post post);
 }
-
-/*
- * 
- * @Mapping(source = "followed.userId", target = "userId")
- * 
- * @Mapping(source = "followed.userProfile.nickname", target = "nickname")
- * 
- * @Mapping(source = "followed.userProfile.profileThumbURL", target =
- * "profileThumbURL")
- * 
- * @Mapping(source = "followed.userProfile.profileMessage", target =
- * "profileMessage")
- * 
- * @Mapping(source = "id", target = "id")
- * 
- * @Mapping(source = "createAt", target = "createAt")
- * FollowerResponse toFollowerResponse(Follow follow);
- * 
- * List<FollowerResponse> toFollowerResponseList(Set<Follow> following);
- * 
- */

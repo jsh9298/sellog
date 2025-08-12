@@ -11,7 +11,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
+import com.teamproject.sellog.domain.user.mapper.FollowBlockMapper;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
 import com.teamproject.sellog.domain.user.model.entity.friend.Block;
@@ -20,7 +23,6 @@ import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.BlockRepository;
 import com.teamproject.sellog.domain.user.repository.FollowRepository;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
-import com.teamproject.sellog.mapper.FollowBlockMapper;
 
 @Service
 public class FollowBlockService {
@@ -96,7 +98,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean added = user.addFollowing(other);
         if (!added) {
-            throw new IllegalStateException("check follow/block lists");
+            throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
         }
         return listFollower(userId, null, null, 10);
     }
@@ -107,7 +109,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean added = user.addBlocking(other);
         if (!added) {
-            throw new IllegalStateException("check follow/block lists");
+            throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
         }
         return listBlock(userId, null, null, 10);
     }
@@ -118,7 +120,7 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean removed = user.removeFollowing(other);
         if (!removed) {
-            throw new IllegalStateException("check follow/block lists");
+            throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
         }
         return listFollower(userId, null, null, 10);
     }
@@ -129,19 +131,19 @@ public class FollowBlockService {
         User other = findUser(otherId);
         boolean removed = user.removeBlocking(other);
         if (!removed) {
-            throw new IllegalStateException("check follow/block lists");
+            throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
         }
         return listBlock(userId, null, null, 10);
     }
 
     private User findUser(String userId) {
         return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     private UUID userIdToId(String userId) {
         return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID")).getId();
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)).getId();
     }
 
 }

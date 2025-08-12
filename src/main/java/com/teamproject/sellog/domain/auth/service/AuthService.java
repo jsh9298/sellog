@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserLoginDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserRegisterDto;
 import com.teamproject.sellog.domain.auth.model.dto.response.UserLoginResponse;
@@ -56,42 +58,45 @@ public class AuthService {
 
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
+        try {
 
-        String salt = PasswordHasher.generateSalt();
-        String hashedPassword = PasswordHasher.hashPassword(userRegisterDto.getPassword(), salt);
+            String salt = PasswordHasher.generateSalt();
+            String hashedPassword = PasswordHasher.hashPassword(userRegisterDto.getPassword(), salt);
 
-        User newUser = new User();
-        newUser.setUserId(userRegisterDto.getUserId());
-        newUser.setPasswordHash(hashedPassword);
-        newUser.setPasswordSalt(salt);
-        newUser.setEmail(userRegisterDto.getEmail());
-        newUser.setRole(Role.USER); // 기본 역할 설정
-        newUser.setAccountStatus(AccountStatus.STAY); // 기본 계정 상태 설정
-        newUser.setLastLogin(Timestamp.valueOf(LocalDateTime.now()));
-        newUser.setAccountVisibility(AccountVisibility.PUBLIC); // 기본 가시성 설정
+            User newUser = new User();
+            newUser.setUserId(userRegisterDto.getUserId());
+            newUser.setPasswordHash(hashedPassword);
+            newUser.setPasswordSalt(salt);
+            newUser.setEmail(userRegisterDto.getEmail());
+            newUser.setRole(Role.USER); // 기본 역할 설정
+            newUser.setAccountStatus(AccountStatus.STAY); // 기본 계정 상태 설정
+            newUser.setLastLogin(Timestamp.valueOf(LocalDateTime.now()));
+            newUser.setAccountVisibility(AccountVisibility.PUBLIC); // 기본 가시성 설정
 
-        UserPrivate userInfoPrivate = new UserPrivate();
-        userInfoPrivate.setUserName(userRegisterDto.getName());
+            UserPrivate userInfoPrivate = new UserPrivate();
+            userInfoPrivate.setUserName(userRegisterDto.getName());
 
-        UserProfile userInfoProfile = new UserProfile();
-        userInfoProfile.setNickname(userRegisterDto.getNickname());
-        userInfoProfile.setProfileURL(
-                "https://sellogstorage.blob.core.windows.net/outcontents/Default/origin/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg");
-        userInfoProfile.setProfileThumbURL(
-                "https://sellogstorage.blob.core.windows.net/outcontents/Default/thumbnails/profile/307ce493-b254-4b2d-8ba4-d12c080d6651.webp");
+            UserProfile userInfoProfile = new UserProfile();
+            userInfoProfile.setNickname(userRegisterDto.getNickname());
+            userInfoProfile.setProfileURL(
+                    "https://sellogstorage.blob.core.windows.net/outcontents/Default/origin/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg");
+            userInfoProfile.setProfileThumbURL(
+                    "https://sellogstorage.blob.core.windows.net/outcontents/Default/thumbnails/profile/307ce493-b254-4b2d-8ba4-d12c080d6651.webp");
 
-        newUser.setUserPrivate(userInfoPrivate);
-        newUser.setUserProfile(userInfoProfile);
+            newUser.setUserPrivate(userInfoPrivate);
+            newUser.setUserProfile(userInfoProfile);
 
-        return authRepository.save(newUser);
-
+            return authRepository.save(newUser);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Transactional
     public UserLoginResponse loginUser(UserLoginDto userLoginDto) {
         // 사용자 ID로 사용자 정보 조회
         User user = authRepository.findByUserId(userLoginDto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials")); // 사용자가 없으면 예외 발생
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)); // 사용자가 없으면 예외 발생
 
         // 비밀번호 검증
         boolean passwordMatches = PasswordHasher.verifyPassword(
@@ -100,7 +105,7 @@ public class AuthService {
                 user.getPasswordSalt());
 
         if (!passwordMatches) {
-            throw new IllegalArgumentException("Invalid credentials"); // 비밀번호 불일치 시 예외 발생
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD); // 비밀번호 불일치 시 예외 발생
         }
         // JWT 토큰 생성
         Map<String, Object> claims = new HashMap<>();
@@ -176,7 +181,7 @@ public class AuthService {
     public void deleteUser(String userId, String password, String accessToken, String refreshToken) {
         // 1. 사용자 ID로 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 비밀번호 검증
         boolean passwordMatches = PasswordHasher.verifyPassword(
@@ -185,7 +190,7 @@ public class AuthService {
                 user.getPasswordSalt());
 
         if (!passwordMatches) {
-            throw new IllegalArgumentException("Invalid password");
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
         // 3. 현재 사용 중인 액세스 토큰 및 리프레시 토큰 무효화 (블랙리스트 추가)
@@ -218,27 +223,27 @@ public class AuthService {
             claims = jwtProvider.getClaims(refreshToken); // 유효성 검증 및 클레임 추출
         } catch (JwtException e) {
             // 토큰이 유효하지 않거나 만료된 경우
-            throw new IllegalArgumentException("Invalid or expired refresh token");
+            throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
 
         // 2. 리프레시 토큰이 블랙리스트에 있는지 확인
         if (isRefreshTokenBlacklisted(refreshToken)) {
             // 이미 사용되었거나 무효화된 토큰인 경우
-            throw new IllegalArgumentException("Refresh token is blacklisted");
+            throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
         // 3. 토큰에서 사용자 ID 추출
         String userId = claims.get("userId", String.class);
 
         if (!redisService.getValue(USERID_PREFIX + userId + REFRESH_TOKEN_WHITELIST_PREFIX).equals(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is blacklisted");
+            throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
         // 4. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // 5. 사용자 계정 상태 확인
         if (AccountStatus.INACTIVE.equals(user.getAccountStatus())) {
-            throw new IllegalArgumentException("User account is not active");
+            throw new BusinessException(ErrorCode.INACTIVE_USER);
         }
 
         // 6. 기존 리프레시 토큰을 블랙리스트에 추가 (재사용 방지)
@@ -267,14 +272,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public String findUserId(String email) {
         User user = authRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         return user.getUserId();
     }
 
     @Transactional
     public void changePassword(String userId, String email, String password) {
         User user = authRepository.findByUserIdAndEmail(userId, email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         if (user != null) {
             String salt = user.getPasswordSalt();
             String newPassword = PasswordHasher.hashPassword(password, salt);

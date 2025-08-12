@@ -1,4 +1,4 @@
-package com.teamproject.sellog.mapper;
+package com.teamproject.sellog.domain.user.mapper;
 
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;

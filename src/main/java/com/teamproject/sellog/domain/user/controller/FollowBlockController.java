@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
-import com.teamproject.sellog.common.dtoUtils.RestResponse;
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
+import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.user.model.dto.request.OtherUserIdRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
@@ -38,15 +38,11 @@ public class FollowBlockController {
             @RequestParam(required = false) Timestamp lastCreateAt,
             @RequestParam(required = false) UUID lastId,
             @RequestParam(defaultValue = "10") int limit) {
-        try {
-            CursorPageResponse<FollowerResponse> response = followBlockService.listFollower(userId, lastCreateAt,
-                    lastId,
-                    limit);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "follower list", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "fatech failed by" + e.getMessage(), null));
-        }
 
+        CursorPageResponse<FollowerResponse> response = followBlockService.listFollower(userId, lastCreateAt,
+                lastId,
+                limit);
+        return ResponseEntity.ok(RestResponse.success("follower list", response));
     }
 
     @GetMapping("/blocks") // 차단목록
@@ -56,14 +52,11 @@ public class FollowBlockController {
             @RequestParam(required = false) UUID lastId,
             @RequestParam(defaultValue = "10") int limit) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        try {
-            CursorPageResponse<BlockResponse> response = followBlockService.listBlock(userId, lastCreateAt,
-                    lastId,
-                    limit);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "blocks list", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "fatech failed by" + e.getMessage(), null));
-        }
+
+        CursorPageResponse<BlockResponse> response = followBlockService.listBlock(userId, lastCreateAt,
+                lastId,
+                limit);
+        return ResponseEntity.ok(RestResponse.success("blocks list", response));
     }
 
     @PostMapping("/followers")
@@ -72,13 +65,11 @@ public class FollowBlockController {
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         String otherId = otherUserIdRequest.getOtherId();
-        try {
-            CursorPageResponse<FollowerResponse> response = followBlockService.addFollower(userId, otherId);
 
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "add success", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "add failed by" + e.getMessage(), null));
-        }
+        CursorPageResponse<FollowerResponse> response = followBlockService.addFollower(userId, otherId);
+
+        return ResponseEntity.ok(RestResponse.success("add success", response));
+
     }
 
     @PostMapping("/blocks")
@@ -87,12 +78,10 @@ public class FollowBlockController {
             @RequestBody OtherUserIdRequest otherUserIdRequest) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         String otherId = otherUserIdRequest.getOtherId();
-        try {
-            CursorPageResponse<BlockResponse> response = followBlockService.addBlock(userId, otherId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "add success", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "add failed by" + e.getMessage(), null));
-        }
+
+        CursorPageResponse<BlockResponse> response = followBlockService.addBlock(userId, otherId);
+        return ResponseEntity.ok(RestResponse.success("add success", response));
+
     }
 
     @DeleteMapping("/followers/{otherId}")
@@ -101,13 +90,10 @@ public class FollowBlockController {
             @PathVariable String otherId) {
         String userId = request.getAttribute("authenticatedUserId").toString();
 
-        try {
-            CursorPageResponse<FollowerResponse> response = followBlockService.removeFollower(userId, otherId);
+        CursorPageResponse<FollowerResponse> response = followBlockService.removeFollower(userId, otherId);
 
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "remove success", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "add failed by" + e.getMessage(), null));
-        }
+        return ResponseEntity.ok(RestResponse.success("remove success", response));
+
     }
 
     @DeleteMapping("/blocks/{otherId}")
@@ -115,13 +101,9 @@ public class FollowBlockController {
     public ResponseEntity<?> removeBlock(HttpServletRequest request,
             @PathVariable String otherId) {
         String userId = request.getAttribute("authenticatedUserId").toString();
+        CursorPageResponse<BlockResponse> response = followBlockService.removeBlock(userId, otherId);
+        return ResponseEntity.ok(RestResponse.success("remove success", response));
 
-        try {
-            CursorPageResponse<BlockResponse> response = followBlockService.removeBlock(userId, otherId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "remove success", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", "add failed by" + e.getMessage(), null));
-        }
     }
 
 }

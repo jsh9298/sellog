@@ -23,7 +23,8 @@ public class PostRequestDto {
     private String contents; // md?html?
     private String thumbnail;
     private List<String> tagNames;
-
-    private String place;
+    private Double latitude; // 경위도 좌표
+    private Double longitude;
+    private String place; // 장소
     private BigInteger price;
 }

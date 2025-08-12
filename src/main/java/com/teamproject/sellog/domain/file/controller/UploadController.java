@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.teamproject.sellog.common.dtoUtils.RestResponse;
+import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.file.model.FileResponse;
 import com.teamproject.sellog.domain.file.model.FileTarget;
 import com.teamproject.sellog.domain.file.service.AzureBlobService;

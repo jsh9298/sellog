@@ -1,4 +1,4 @@
-package com.teamproject.sellog.mapper;
+package com.teamproject.sellog.domain.user.mapper;
 
 import java.util.List;
 import java.util.Set;

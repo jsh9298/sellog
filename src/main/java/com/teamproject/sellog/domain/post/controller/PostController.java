@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.dtoUtils.RestResponse;
+import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.post.model.PostSort;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
@@ -54,23 +54,18 @@ public class PostController {
     @Operation(summary = "읽기(+)", description = "게시글 내용 보기 조회수 정책은 cookie로 판별 예정")
     public ResponseEntity<?> getPost(@PathVariable UUID postId,
             @CookieValue(value = "postView", required = false) Cookie postViewCookie, HttpServletResponse response) {
-        try {
-            PostResponseDto responseData = postService.getPost(postId, postViewCookie, response);
-            return ResponseEntity.ok(new RestResponse<PostResponseDto>(true, "200", "post", responseData));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "404", e.getMessage(), null));
-        }
+
+        PostResponseDto responseData = postService.getPost(postId, postViewCookie, response);
+        return ResponseEntity.ok(RestResponse.success("post", responseData));
+
     }
 
     @PostMapping("/post")
     @Operation(summary = "업로드(+)", description = "게시글 업로드시 사용")
     public ResponseEntity<?> posting(@RequestBody PostRequestDto postRequestDto) {
-        try {
-            postService.posting(postRequestDto);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "posting success", null));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
-        }
+
+        postService.posting(postRequestDto);
+        return ResponseEntity.ok(RestResponse.success("posting success", null));
     }
 
     @PatchMapping("/post/{postId}")
@@ -78,12 +73,9 @@ public class PostController {
     public ResponseEntity<?> editPost(@PathVariable UUID postId, HttpServletRequest request,
             @RequestBody PostRequestDto dto) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        try {
-            PostResponseDto response = postService.editPost(postId, dto, userId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "edit post success", response));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
-        }
+
+        PostResponseDto response = postService.editPost(postId, dto, userId);
+        return ResponseEntity.ok(RestResponse.success("edit post success", response));
 
     }
 
@@ -91,37 +83,29 @@ public class PostController {
     @Operation(summary = "삭제(+)", description = "게시글 삭제시 사용")
     public ResponseEntity<?> deletePost(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        try {
-            postService.deletePost(postId, userId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "delete post success", null));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", e.getMessage(), null));
-        }
+
+        postService.deletePost(postId, userId);
+        return ResponseEntity.ok(RestResponse.success("delete post success", null));
 
     }
 
     @PatchMapping("/post/{postId}/like")
-    @Operation(summary = "좋아요 토글(-)", description = "좋아요 토글")
+    @Operation(summary = "좋아요 토글(+)", description = "좋아요 토글")
     public ResponseEntity<?> toggleLike(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        try {
-            postService.toggleLike(postId, userId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "toggle like success", null));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", "toggle like failed", null));
-        }
+
+        postService.toggleLike(postId, userId);
+        return ResponseEntity.ok(RestResponse.success("toggle like success", null));
 
     }
 
     @PatchMapping("/post/{postId}/dislike")
-    @Operation(summary = "싫어요 토글(-)", description = "싫어요 토글 스팩에는 없지만 혹시 몰라서 만들어둠")
+    @Operation(summary = "싫어요 토글(+)", description = "싫어요 토글 스팩에는 없지만 혹시 몰라서 만들어둠")
     public ResponseEntity<?> toggleDislike(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        try {
-            postService.toggleDisLike(postId, userId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "toggle dislike success", null));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", "toggle dislike failed", null));
-        }
+
+        postService.toggleDisLike(postId, userId);
+        return ResponseEntity.ok(RestResponse.success("toggle dislike success", null));
+
     }
 }

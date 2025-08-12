@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.teamproject.sellog.common.dtoUtils.RestResponse;
+import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.post.model.dto.request.ReviewRequest;
+import com.teamproject.sellog.domain.post.model.dto.response.ReviewResponseDto;
 import com.teamproject.sellog.domain.post.service.ReviewService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,24 +44,27 @@ public class ReviewController {
 
     @PostMapping("/review/{postId}")
     @Operation(summary = "리뷰 등록(+)", description = "등록")
-    public ResponseEntity<?> review(@PathVariable UUID postId, @RequestBody ReviewRequest dto) {
-        try {
-            reviewService.review(dto, postId);
-            return ResponseEntity.ok(new RestResponse<>(true, "200", "Add Review succsess", null));
-        } catch (Exception e) {
-            return ResponseEntity.ok(new RestResponse<>(false, "500", "Add Review failed", null));
-        }
+    public ResponseEntity<?> review(@PathVariable UUID postId, @RequestBody ReviewRequest dto,
+            HttpServletRequest request) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        reviewService.review(dto, postId, userId);
+        return ResponseEntity.ok(RestResponse.success("Add Review success", null));
+
     }
 
     @PatchMapping("/review/{postId}")
     @Operation(summary = "리뷰 수정(-)", description = "수정")
-    public ResponseEntity<?> editReview(@PathVariable UUID postId, @RequestBody String entity) {
-        return null;
+    public ResponseEntity<?> editReview(@PathVariable UUID postId, @RequestBody ReviewRequest dto,
+            HttpServletRequest request) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        ReviewResponseDto response = reviewService.edit(dto, postId, userId);
+        return ResponseEntity.ok(RestResponse.success("Edit Review success", response));
     }
 
     @DeleteMapping("/review/{postId}")
     @Operation(summary = "리뷰 삭제(-)", description = "삭제")
-    public ResponseEntity<?> deleteReview(@PathVariable UUID postId, @RequestBody String entity) {
+    public ResponseEntity<?> deleteReview(@PathVariable UUID postId,
+            HttpServletRequest request) {
         return null;
     }
 }

@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.accountsUtils.CheckStatus;
-import com.teamproject.sellog.common.dtoUtils.CursorPageResponse;
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
+import com.teamproject.sellog.domain.post.mapper.PostMapper;
 import com.teamproject.sellog.domain.post.model.PostSort;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
@@ -31,7 +34,6 @@ import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.TagRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
-import com.teamproject.sellog.mapper.PostMapper;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -81,7 +83,7 @@ public class PostService {
         }
 
         List<String> tagNames = new ArrayList<String>();
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         Set<HashBoard> hashBoards = post.getHashBoard();
         for (HashBoard hashBoard : hashBoards) {
@@ -94,7 +96,7 @@ public class PostService {
     }
 
     private User getUser(String userId) {
-        return userRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return userRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
     private Post createPost(PostRequestDto dto) {
@@ -137,8 +139,8 @@ public class PostService {
     }
 
     @Transactional
-    public PostResponseDto editPost(UUID postId, PostRequestDto dto, String userId) throws IllegalAccessException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+    public PostResponseDto editPost(UUID postId, PostRequestDto dto, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
             List<String> tagNames = null;
             postMapper.updatePostFromRequest(post, dto);
@@ -149,25 +151,24 @@ public class PostService {
             }
             return postMapper.EntityToResponse(post, tagNames);
         }
-        throw new IllegalAccessException("Permission deny");
-
+        throw new BusinessException(ErrorCode.POST_OWNER_MISMATCH);
     }
 
     @Transactional
-    public void deletePost(UUID postId, String userId) throws IllegalAccessException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+    public void deletePost(UUID postId, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
             postRepository.delete(post);
         } else {
-            throw new IllegalAccessException("Permission deny");
+            throw new BusinessException(ErrorCode.POST_OWNER_MISMATCH);
         }
     }
 
     @Transactional
-    public void toggleLike(UUID postId, String userId) throws IllegalAccessException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+    public void toggleLike(UUID postId, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
-            throw new IllegalAccessException("Can't toggleed own post");
+            throw new BusinessException(ErrorCode.POST_DENY_OWN_POST);
         }
         PostFeedbackList feedback = new PostFeedbackList();
         feedback.setPost(post);
@@ -178,15 +179,15 @@ public class PostService {
         } else if (post.removeFeedBack(feedback, FeedBackType.LIKE)) {
             return;
         } else {
-            throw new IllegalArgumentException("you already disliked this post");
+            throw new BusinessException(ErrorCode.POST_DENY_MULTIPLE);
         }
     }
 
     @Transactional
-    public void toggleDisLike(UUID postId, String userId) throws IllegalAccessException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException("post not found"));
+    public void toggleDisLike(UUID postId, String userId) {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
-            throw new IllegalAccessException("Can't toggleed own post");
+            throw new BusinessException(ErrorCode.POST_DENY_OWN_POST);
         }
         PostFeedbackList feedback = new PostFeedbackList();
         feedback.setPost(post);
@@ -197,7 +198,7 @@ public class PostService {
         } else if (post.removeFeedBack(feedback, FeedBackType.DISLIKE)) {
             return;
         } else {
-            throw new IllegalArgumentException("you already liked this post");
+            throw new BusinessException(ErrorCode.POST_DENY_MULTIPLE);
         }
     }
 
