@@ -17,7 +17,7 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
     List<Block> findByBlockingIdOrderByCreateAtDescIdDesc(UUID blockedId, Pageable Pageable);
 
     @EntityGraph(attributePaths = { "blocked", "blocked.userProfile" })
-    @Query("SELECT b FROM Block b WHERE b.blocking.id = :blockingUserId AND (b.createAt < :lastCreateAt OR (b.createAt = :lastCreateAt AND b.id < :lastId)) ORDER BY b.createAt DESC, b.id DESC")
+    @Query("SELECT b FROM Block b WHERE b.blocking.id = :blockingUserId AND (b.createAt < :lastCreateAt OR (b.createAt = :lastCreateAt AND b.id < :lastId)) ORDER BY b.createAt DESC, b.blocking.userId DESC")
     List<Block> findByBlockingIdAndCursor(@Param("blockingUserId") UUID blockingUserId,
             @Param("lastCreateAt") Timestamp lastCreateAt,
             @Param("lastId") UUID lastId,

@@ -37,7 +37,7 @@ public class ReviewController {
             @PathVariable UUID postId,
             @RequestParam(required = false) Timestamp lastCreateAt,
             @RequestParam(required = false) UUID lastId,
-            @RequestParam(defaultValue = "10") String limit) {
+            @RequestParam(defaultValue = "10") int limit) {
 
         return null;
     }
@@ -65,6 +65,8 @@ public class ReviewController {
     @Operation(summary = "리뷰 삭제(-)", description = "삭제")
     public ResponseEntity<?> deleteReview(@PathVariable UUID postId,
             HttpServletRequest request) {
-        return null;
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        reviewService.deleteReview(postId, userId);
+        return ResponseEntity.ok(RestResponse.success("Remove Review success", null));
     }
 }

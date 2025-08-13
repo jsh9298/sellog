@@ -1,14 +1,22 @@
 package com.teamproject.sellog.domain.post.service;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.domain.post.mapper.ReviewMapper;
 import com.teamproject.sellog.domain.post.model.dto.request.ReviewRequest;
+import com.teamproject.sellog.domain.post.model.dto.response.ReviewListResponse;
 import com.teamproject.sellog.domain.post.model.dto.response.ReviewResponseDto;
 import com.teamproject.sellog.domain.post.model.entity.Review;
 import com.teamproject.sellog.domain.post.model.entity.Post;
@@ -67,5 +75,30 @@ public class ReviewService {
         Review review = reviewRepository.findByPostAndAuthor(post, user)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
         reviewRepository.delete(review);
+    }
+
+    @Transactional(readOnly = true)
+    public CursorPageResponse<ReviewListResponse> listReview(UUID postId, Timestamp lastCreateAt, UUID lastId,
+            int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
+        List<Review> reviews;
+        if(lastCreateAt == null && lastId == null){
+            reviews = reviewRepository.findById()
+        }else{
+              reviews = reviewRepository.findById()
+        }
+        List<ReviewListResponse> reviewDto = reviews.stream().map(
+            //맵퍼객체
+        ).collect(Collectors.toList());
+        boolean hasNext = reviews.size() == limit;
+        Timestamp nextCreateAt = null;
+        UUID nextId = null;
+        if (hasNext) {
+        Review lastReview = reviews.get(reviews.size() - 1);
+        nextCreateAt = lastReview.getCreateAt();
+        nextId = lastReview.getReviewId();
+        }
+        return  new CursorPageResponse<>(reviewDto, hasNext, nextCreateAt, nextId);
+
     }
 }

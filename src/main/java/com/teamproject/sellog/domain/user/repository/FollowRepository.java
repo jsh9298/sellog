@@ -17,7 +17,7 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
     List<Follow> findByFollowerIdOrderByCreateAtDescIdDesc(UUID followerId, Pageable Pageable);
 
     @EntityGraph(attributePaths = { "followed", "followed.userProfile" })
-    @Query("SELECT f FROM Follow f WHERE f.follower.id = :followerId AND (f.createAt < :lastCreateAt OR (f.createAt = : lastCreateAt AND f.id < :lastId)) ORDER BY f.createAt DESC, f.id DESC")
+    @Query("SELECT f FROM Follow f WHERE f.follower.id = :followerId AND (f.createAt < :lastCreateAt OR (f.createAt = : lastCreateAt AND f.id < :lastId)) ORDER BY f.createAt DESC, f.follower.userId DESC")
     List<Follow> findByFollowerIdAndCursor(@Param("followerId") UUID userId,
             @Param("lastCreateAt") Timestamp lastCreateAt,
             @Param("lastId") UUID lastId, Pageable pageable);
