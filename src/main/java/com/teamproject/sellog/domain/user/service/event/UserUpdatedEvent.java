@@ -1,5 +1,9 @@
 package com.teamproject.sellog.domain.user.service.event;
 
+import org.springframework.context.ApplicationEvent;
+
+import com.teamproject.sellog.domain.user.model.entity.user.User;
+
 public class UserUpdatedEvent extends ApplicationEvent {
     private final User user;
 
