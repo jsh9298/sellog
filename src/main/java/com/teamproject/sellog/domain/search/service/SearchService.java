@@ -1,9 +1,7 @@
 package com.teamproject.sellog.domain.search.service;
 
-import org.springframework.stereotype.Service;
-
-import com.teamproject.sellog.common.lacationUtils.Location;
-import com.teamproject.sellog.common.lacationUtils.UserMapDistance;
+import com.teamproject.sellog.common.locationUtils.Location;
+import com.teamproject.sellog.common.locationUtils.UserMapDistance;
 import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.search.model.dto.UnifiedSearchRequest;
 import com.teamproject.sellog.domain.search.model.entity.PopularSearchKeyword;
@@ -12,7 +10,9 @@ import com.teamproject.sellog.domain.search.repository.PopularSearchKeywordRepos
 import com.teamproject.sellog.domain.search.repository.SearchIndexRepository;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
-// import com.teamproject.sellog.domain.user.repository.FriendshipRepository; // 친구 목록 조회 Repository (가정)
+
+import com.teamproject.sellog.domain.user.repository.FollowRepository; // FollowRepository 추가
+import com.teamproject.sellog.domain.user.repository.BlockRepository; // BlockRepository 추가
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // 트랜잭션 필요 시
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j // 로깅을 위한 Lombok 어노테이션
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -38,8 +38,10 @@ public class SearchService {
     private final SearchIndexRepository searchIndexRepository;
     private final PopularSearchKeywordRepository popularSearchKeywordRepository;
     private final UserRepository userRepository;
-    // private final FriendshipRepository friendshipRepository; // Friendship 엔티티와
-    // Repository가 있다고 가정
+
+    // 변경점: FriendshipRepository 대신 FollowRepository와 BlockRepository를 주입
+    private final FollowRepository followRepository;
+    private final BlockRepository blockRepository;
 
     // --- 통합 검색 로직 ---
     @Transactional(readOnly = true)
@@ -53,12 +55,30 @@ public class SearchService {
         // 1. 친구 검색 필터링 (searchOnlyFriends && targetType = "USER")
         if (request.getSearchOnlyFriends() != null && request.getSearchOnlyFriends()
                 && "USER".equalsIgnoreCase(targetType)) {
-            User currentUser = userRepository.findById(authenticatedUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found."));
-            Set<UUID> friendIds = friendshipRepository.findFriendIdsByUserId(currentUser.getId()); // 친구 ID 목록 조회
+            if (authenticatedUserId == null) {
+                // 인증된 사용자 ID가 없으면 친구 목록을 조회할 수 없음
+                log.warn("Attempt to search only friends without authenticated user ID.");
+                return Page.empty(pageable);
+            }
+
+            // (1) 현재 사용자가 팔로우하는 모든 사용자 ID 조회
+            Set<UUID> followingIds = followRepository.findFollowingIdsByFollowerId(authenticatedUserId)
+                    .stream()
+                    .collect(Collectors.toSet());
+
+            // (2) 현재 사용자가 차단한 모든 사용자 ID 조회
+            Set<UUID> blockedIds = blockRepository.findBlockedIdsByBlockerId(authenticatedUserId)
+                    .stream()
+                    .collect(Collectors.toSet());
+
+            // (3) 팔로우하는 사용자 중 차단하지 않은 사용자만 필터링 = 실제 '친구' 목록
+            Set<UUID> friendIds = followingIds.stream()
+                    .filter(id -> !blockedIds.contains(id))
+                    .collect(Collectors.toSet());
 
             if (friendIds.isEmpty()) {
-                return Page.empty(pageable); // 친구가 없으면 빈 페이지 반환
+                log.info("No friends found or all followed users are blocked for user: {}", authenticatedUserId);
+                return Page.empty(pageable); // 친구가 없거나 모두 차단했다면 빈 페이지 반환
             }
             return searchIndexRepository.searchFriends(keyword, friendIds, pageable);
         }
@@ -73,10 +93,11 @@ public class SearchService {
             Location southwest = UserMapDistance.aroundCustomerSouthwestDot(userLocation, searchRadiusKm);
 
             // TODO: searchIndexRepository에 Bounding Box 기반 검색 쿼리 추가 필요
-            // 현재 코드에는 해당 쿼리가 없으므로, 모든 결과를 가져와 서비스에서 필터링 (비효율적이지만 예시)
+            // 이 쿼리는 SearchIndex.locationPoint를 사용하여 DB에서 공간 필터링을 수행해야 합니다.
+            // 아래는 예시를 위한 임시 코드 (실제 서비스에서는 최적화 필요)
             Page<SearchIndex> resultsInBoundingBox = searchIndexRepository.unifiedSearch(keyword, targetType, pageable);
 
-            // 2차 필터링: 정확한 거리 계산
+            // 2차 필터링: 정확한 거리 계산 (서비스 단에서 필터링 - 효율성 저하)
             List<SearchIndex> filteredByDistance = resultsInBoundingBox.getContent().stream()
                     .filter(searchItem -> {
                         // SearchIndex에 locationPoint가 있다고 가정
@@ -85,15 +106,21 @@ public class SearchService {
                         }
                         Location itemLocation = new Location(searchItem.getLocationPoint().getY(),
                                 searchItem.getLocationPoint().getX()); // JTS Point (X,Y) -> Location (Lat,Lon)
-                        double distance = UserMapDistance.calculateDistance(userLocation,
-                                new Post(null, null, itemLocation)); // Post 객체 생성하여 전달 (Post.getLocation() 호출을 위함)
+                        // calculateDistance는 Post 엔티티를 받도록 되어 있어, 여기서는 Post mock 또는 Post 대신 location만
+                        // 받는 오버로드 메서드 필요
+                        // 간단한 Post 객체 생성 (실제 사용은 추천하지 않음, calculateDistance에 location만 받는 오버로드 만드는 것을
+                        // 권장)
+                        Post tempPost = new Post(null, null, itemLocation);
+                        double distance = UserMapDistance.calculateDistance(userLocation, tempPost); // Post 객체 생성하여 전달
+                                                                                                     // (Post.getLocation()
+                                                                                                     // 호출을 위함)
                         return distance <= (searchRadiusKm * 1000); // km -> m 변환
                     })
                     .collect(Collectors.toList());
 
             // 페이지 재구성
             return new org.springframework.data.domain.PageImpl<>(filteredByDistance, pageable,
-                    filteredByDistance.size());
+                    resultsInBoundingBox.getTotalElements());
         }
 
         // 3. 일반적인 통합 검색 (키워드 및 대상 타입 필터링)
@@ -102,7 +129,7 @@ public class SearchService {
 
     // --- 검색어 추천 기능 ---
 
-    // 1. 검색어 로깅/카운트 업데이트 (게시글 검색 후 호출될 수 있음)
+    // 1. 검색어 로깅/카운트 업데이트
     @Transactional
     public void logSearchKeyword(String keyword) {
         if (keyword == null || keyword.trim().isEmpty())
@@ -124,7 +151,6 @@ public class SearchService {
     // 2. 인기 검색어 조회
     @Transactional(readOnly = true)
     public List<String> getPopularSearchKeywords(int limit) {
-        // limit에 맞는 Pageable 객체 생성
         Pageable pageable = PageRequest.of(0, limit, Sort.by("searchCount").descending());
         return popularSearchKeywordRepository.findTopByOrderBySearchCountDesc(pageable)
                 .stream()
@@ -138,7 +164,7 @@ public class SearchService {
         if (partialQuery == null || partialQuery.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        Pageable pageable = PageRequest.of(0, limit); // 정렬은 쿼리에서
+        Pageable pageable = PageRequest.of(0, limit);
         return searchIndexRepository.findAutocompleteSuggestions(partialQuery.trim(), pageable);
     }
 }
