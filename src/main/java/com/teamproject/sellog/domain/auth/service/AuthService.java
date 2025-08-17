@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import com.teamproject.sellog.domain.auth.model.jwt.JWT;
 import com.teamproject.sellog.domain.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.domain.auth.model.jwt.PasswordHasher;
 import com.teamproject.sellog.domain.auth.repository.AuthRepository;
+import com.teamproject.sellog.domain.auth.service.event.UserCreatedEvent;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountStatus;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;
 import com.teamproject.sellog.domain.user.model.entity.user.Role;
@@ -37,13 +39,18 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
 
     public AuthService(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService,
-            @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds) {
+            @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds,
+            ApplicationEventPublisher eventPublisher) {
         this.authRepository = authRepository;
         this.jwtProvider = jwtProvider;
         this.redisService = redisService;
+
+        this.eventPublisher = eventPublisher;
 
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
@@ -86,6 +93,7 @@ public class AuthService {
             newUser.setUserPrivate(userInfoPrivate);
             newUser.setUserProfile(userInfoProfile);
 
+            eventPublisher.publishEvent(new UserCreatedEvent(this, newUser));
             return authRepository.save(newUser);
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);

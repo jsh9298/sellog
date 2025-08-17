@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,6 +33,9 @@ import com.teamproject.sellog.domain.post.model.entity.PostFeedbackList;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.TagRepository;
+import com.teamproject.sellog.domain.post.service.event.PostCreatedEvent;
+import com.teamproject.sellog.domain.post.service.event.PostDeletedEvent;
+import com.teamproject.sellog.domain.post.service.event.PostUpdatedEvent;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 
@@ -44,13 +48,16 @@ public class PostService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final PostMapper postMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostService(final PostRepository postRepository,
-            final UserRepository userRepository, final TagRepository tagRepository, final PostMapper postMapper) {
+            final UserRepository userRepository, final TagRepository tagRepository, final PostMapper postMapper,
+            final ApplicationEventPublisher eventPublisher) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.tagRepository = tagRepository;
         this.postMapper = postMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -60,6 +67,7 @@ public class PostService {
         if (dto.getTagNames() != null && dto.getTagNames().size() > 0) {
             addTagsToPost(post, dto.getTagNames());
         }
+        eventPublisher.publishEvent(new PostCreatedEvent(this, post));
     }
 
     @Transactional(readOnly = true)
@@ -132,10 +140,12 @@ public class PostService {
 
         for (HashBoard board : hashBoardsToRemove) {
             HashTag tag = board.getTag();
-
-            post.removeHash(board);
-            tag.removeHash(board);
+            post.removeHash(board); // Post의 컬렉션에서 제거
+            if (tag != null) { // tag가 null이 아닐 경우에만 removeHash 호출
+                tag.removeHash(board); // HashTag의 컬렉션에서 제거
+            }
         }
+        post.getHashBoard().clear();
     }
 
     @Transactional
@@ -149,6 +159,7 @@ public class PostService {
                 tagNames = dto.getTagNames();
                 addTagsToPost(post, tagNames);
             }
+            eventPublisher.publishEvent(new PostUpdatedEvent(this, post));
             return postMapper.EntityToResponse(post, tagNames);
         }
         throw new BusinessException(ErrorCode.POST_OWNER_MISMATCH);
@@ -159,6 +170,7 @@ public class PostService {
         Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
             postRepository.delete(post);
+            eventPublisher.publishEvent(new PostDeletedEvent(this, postId));
         } else {
             throw new BusinessException(ErrorCode.POST_OWNER_MISMATCH);
         }

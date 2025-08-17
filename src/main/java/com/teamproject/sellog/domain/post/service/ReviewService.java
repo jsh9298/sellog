@@ -82,23 +82,23 @@ public class ReviewService {
             int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
         List<Review> reviews;
-        if(lastCreateAt == null && lastId == null){
-            reviews = reviewRepository.findById()
-        }else{
-              reviews = reviewRepository.findById()
+        if (lastCreateAt == null && lastId == null) {
+            // reviews = reviewRepository.findById()
+        } else {
+            // reviews = reviewRepository.findById()
         }
         List<ReviewListResponse> reviewDto = reviews.stream().map(
-            //맵퍼객체
+        // 맵퍼객체
         ).collect(Collectors.toList());
         boolean hasNext = reviews.size() == limit;
         Timestamp nextCreateAt = null;
         UUID nextId = null;
         if (hasNext) {
-        Review lastReview = reviews.get(reviews.size() - 1);
-        nextCreateAt = lastReview.getCreateAt();
-        nextId = lastReview.getReviewId();
+            Review lastReview = reviews.get(reviews.size() - 1);
+            nextCreateAt = lastReview.getCreateAt();
+            nextId = lastReview.getReviewId();
         }
-        return  new CursorPageResponse<>(reviewDto, hasNext, nextCreateAt, nextId);
+        return new CursorPageResponse<>(reviewDto, hasNext, nextCreateAt, nextId);
 
     }
 }

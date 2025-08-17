@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.service;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,16 +17,20 @@ import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.model.entity.user.UserPrivate;
 import com.teamproject.sellog.domain.user.model.entity.user.UserProfile;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
+import com.teamproject.sellog.domain.user.service.event.UserUpdatedEvent;
 
 @Service
 public class UserInfoService {
 
     private final UserRepository userRepository;
     private final UserInfoMapper userInfoMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserInfoService(UserRepository userRepository, UserInfoMapper userInfoMapper) {
+    public UserInfoService(UserRepository userRepository, UserInfoMapper userInfoMapper,
+            ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.userInfoMapper = userInfoMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(readOnly = true) // 음.. 나중에 리팩토링 가능할수도
@@ -74,6 +79,7 @@ public class UserInfoService {
         if (user.getAccountStatus() == AccountStatus.STAY) {
             user.setAccountStatus(AccountStatus.ACTIVE);
         }
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, user));
         userInfoMapper.updatePrivateFromRequest(userProfileRequest, userPrivate);
         userInfoMapper.updateProfileFromRequest(userProfileRequest, userProfile);
         userInfoMapper.updateUserFromRequest(userProfileRequest, user);

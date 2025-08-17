@@ -22,4 +22,8 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
             @Param("lastCreateAt") Timestamp lastCreateAt,
             @Param("lastId") UUID lastId,
             Pageable pageable);
+
+    // 특정 사용자가 차단한 모든 사용자의 ID를 조회
+    @Query("SELECT b.blocked.id FROM Block b WHERE b.blocking.id = :blockerId")
+    List<UUID> findBlockedIdsByBlockerId(@Param("blockerId") UUID blockerId);
 }
