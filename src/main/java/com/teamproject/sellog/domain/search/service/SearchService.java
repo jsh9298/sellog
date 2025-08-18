@@ -38,8 +38,6 @@ public class SearchService {
     private final SearchIndexRepository searchIndexRepository;
     private final PopularSearchKeywordRepository popularSearchKeywordRepository;
     private final UserRepository userRepository;
-
-    // 변경점: FriendshipRepository 대신 FollowRepository와 BlockRepository를 주입
     private final FollowRepository followRepository;
     private final BlockRepository blockRepository;
 

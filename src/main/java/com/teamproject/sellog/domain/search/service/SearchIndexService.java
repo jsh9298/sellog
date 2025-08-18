@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.transaction.event.Phase;
+import org.springframework.transaction.event.TransactionPhase;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,26 +36,26 @@ public class SearchIndexService {
     private final UserRepository userRepository; // 사용자 정보 가져오기 위함
 
     // --- Post 엔티티 변경 이벤트 처리 ---
-    @TransactionalEventListener(phase = Phase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostCreated(PostCreatedEvent event) {
         log.info("Handling PostCreatedEvent for postId: {}", event.getPost().getId());
         updateSearchIndexForPost(event.getPost());
     }
 
-    @TransactionalEventListener(phase = Phase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostUpdated(PostUpdatedEvent event) {
         log.info("Handling PostUpdatedEvent for postId: {}", event.getPost().getId());
         updateSearchIndexForPost(event.getPost());
     }
 
-    @TransactionalEventListener(phase = Phase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostDeleted(PostDeletedEvent event) {
         log.info("Handling PostDeletedEvent for postId: {}", event.getPostId());
         searchIndexRepository.deleteBySourceIdAndSourceType(event.getPostId(), "POST");
     }
 
     // --- User 엔티티 변경 이벤트 처리 (예시) ---
-    @TransactionalEventListener(phase = Phase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserUpdated(UserUpdatedEvent event) {
         log.info("Handling UserUpdatedEvent for userId: {}", event.getUser().getId());
         updateSearchIndexForUser(event.getUser());
@@ -108,14 +108,14 @@ public class SearchIndexService {
 
         searchIndex.setSourceId(user.getId());
         searchIndex.setSourceType("USER");
-        searchIndex.setMainTitle(user.getUsername()); // 사용자 이름
+        searchIndex.setMainTitle(user.getUserProfile().getNickname()); // 사용자 이름
         searchIndex.setSubContent(user.getEmail()); // 이메일 등 추가 정보
         searchIndex.setCreatedAt(null); // User 생성 시간 필드 있다면 추가
         searchIndex.setAuthorId(user.getId()); // 사용자 자신 ID를 authorId에 저장
-        searchIndex.setLocationPoint(user.getLocationPoint()); // 사용자 JTS Point
+        searchIndex.setLocationPoint(user.getUserPrivate().getLocationPoint()); // 사용자 JTS Point
 
         // Full-Text Content 조합 (사용자 이름, 이메일 등)
-        String fullText = user.getUsername() + " " + user.getEmail();
+        String fullText = user.getUserProfile().getNickname() + " " + user.getEmail();
         searchIndex.setFullTextContent(fullText.trim());
 
         searchIndexRepository.save(searchIndex);

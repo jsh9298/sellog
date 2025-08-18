@@ -21,9 +21,13 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     boolean existsByAuthor(User Author);
 
-    List<Review> findAllByOrderByIdDesc(Pageable Pageable);
+    @Query("SELECT p FROM Review p WHERE p.post.id = :postId")
+    List<Review> findAllByOrderByReviewIdDesc(@Param("postId") UUID postId, Pageable Pageable);
 
-    @Query("SELECT p FROM Review p WHERE p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
-    List<Review> findAllByIdAndCursor(@Param("lastCreateAt") Timestamp lastCreateAt, @Param("lastId") UUID lastId,
+    @Query("SELECT p FROM Review p WHERE p.post.id = :postId AND p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
+    List<Review> findAllByReviewIdAndCursor(
+            @Param("postId") UUID postId,
+            @Param("lastCreateAt") Timestamp lastCreateAt,
+            @Param("lastId") UUID lastId,
             Pageable pageable);
 }

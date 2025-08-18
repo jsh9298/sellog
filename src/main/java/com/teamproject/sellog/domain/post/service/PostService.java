@@ -21,7 +21,6 @@ import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.domain.post.mapper.PostMapper;
-import com.teamproject.sellog.domain.post.model.PostSort;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
@@ -215,7 +214,7 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public CursorPageResponse<PostListResponseDto> listPost(PostSort sort, PostType type, Timestamp lastCreateAt,
+    public CursorPageResponse<PostListResponseDto> listPost(PostType type, Timestamp lastCreateAt,
             UUID lastId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
 
