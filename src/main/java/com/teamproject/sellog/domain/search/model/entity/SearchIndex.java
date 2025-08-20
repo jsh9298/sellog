@@ -45,7 +45,9 @@ public class SearchIndex {
     @Column(name = "like_count")
     private BigInteger likeCount;
     @Column(name = "author_id") // Post의 author, Comment의 commenter 등
-    private UUID authorId; // 이 필드가 특정 상황에서는 user_id 역할을 함.
+    private String authorId; // 이 필드가 특정 상황에서는 user_id 역할을 함.
+    @Column(name = "author_nickname")
+    private String authorNickname; // usernickname
     @Column(name = "location_point", nullable = true) // JTS Point (위치 기반 검색용)
     private Point locationPoint;
     @Column(name = "price") // 상품 게시글의 가격
@@ -53,7 +55,7 @@ public class SearchIndex {
 
     // 생성자나 빌더를 통해 값 설정
     public SearchIndex(UUID sourceId, String sourceType, String fullTextContent, String mainTitle, String subContent,
-            String thumbnailUrl, Timestamp createdAt, BigInteger likeCount, UUID authorId, Point locationPoint,
+            String thumbnailUrl, Timestamp createdAt, BigInteger likeCount, String authorId, Point locationPoint,
             BigInteger price) {
         this.sourceId = sourceId;
         this.sourceType = sourceType;

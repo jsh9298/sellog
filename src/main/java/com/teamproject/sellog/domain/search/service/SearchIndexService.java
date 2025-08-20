@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.search.service;
 
 import com.teamproject.sellog.domain.post.model.entity.Post; // Post import
+import com.teamproject.sellog.domain.auth.service.event.UserCreatedEvent;
 import com.teamproject.sellog.domain.post.model.entity.HashBoard; // HashBoard import
 import com.teamproject.sellog.domain.post.model.entity.HashTag; // HashTag import
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex; // SearchIndex import
@@ -26,7 +27,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchIndexService {
@@ -38,29 +38,34 @@ public class SearchIndexService {
     // --- Post 엔티티 변경 이벤트 처리 ---
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostCreated(PostCreatedEvent event) {
-        log.info("Handling PostCreatedEvent for postId: {}", event.getPost().getId());
         updateSearchIndexForPost(event.getPost());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostUpdated(PostUpdatedEvent event) {
-        log.info("Handling PostUpdatedEvent for postId: {}", event.getPost().getId());
         updateSearchIndexForPost(event.getPost());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostDeleted(PostDeletedEvent event) {
-        log.info("Handling PostDeletedEvent for postId: {}", event.getPostId());
         searchIndexRepository.deleteBySourceIdAndSourceType(event.getPostId(), "POST");
     }
 
     // --- User 엔티티 변경 이벤트 처리 (예시) ---
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserUpdated(UserUpdatedEvent event) {
-        log.info("Handling UserUpdatedEvent for userId: {}", event.getUser().getId());
         updateSearchIndexForUser(event.getUser());
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleUserCreated(UserCreatedEvent event) {
+        updateSearchIndexForUser(event.getUser());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleUserDeleted(UserCreatedEvent event) {
+        searchIndexRepository.deleteBySourceIdAndSourceType(event.getUser().getId(), "USER");
+    }
     // TODO: UserCreatedEvent, UserDeletedEvent도 정의 및 핸들링 필요
 
     // --- SearchIndex 업데이트 로직 ---
@@ -78,7 +83,8 @@ public class SearchIndexService {
         searchIndex.setThumbnailUrl(post.getThumbnail());
         searchIndex.setCreatedAt(post.getCreateAt());
         searchIndex.setLikeCount(post.getLikeCnt());
-        searchIndex.setAuthorId(post.getAuthor() != null ? post.getAuthor().getId() : null); // 작성자 ID
+        searchIndex.setAuthorId(post.getAuthor() != null ? post.getAuthor().getUserId() : null); // 작성자 ID
+        searchIndex.setAuthorNickname(post.getAuthor().getUserProfile().getNickname());
         searchIndex.setLocationPoint(post.getLocationPoint()); // JTS Point
         searchIndex.setPrice(post.getPrice());
 
@@ -98,7 +104,7 @@ public class SearchIndexService {
         searchIndex.setFullTextContent(fullText.trim());
 
         searchIndexRepository.save(searchIndex);
-        log.info("SearchIndex updated for PostId: {}", post.getId());
+
     }
 
     @Transactional
@@ -111,7 +117,8 @@ public class SearchIndexService {
         searchIndex.setMainTitle(user.getUserProfile().getNickname()); // 사용자 이름
         searchIndex.setSubContent(user.getEmail()); // 이메일 등 추가 정보
         searchIndex.setCreatedAt(null); // User 생성 시간 필드 있다면 추가
-        searchIndex.setAuthorId(user.getId()); // 사용자 자신 ID를 authorId에 저장
+        searchIndex.setAuthorId(user.getUserId()); // 사용자 자신 ID를 authorId에 저장
+        searchIndex.setAuthorNickname(user.getUserProfile().getNickname());
         searchIndex.setLocationPoint(user.getUserPrivate().getLocationPoint()); // 사용자 JTS Point
 
         // Full-Text Content 조합 (사용자 이름, 이메일 등)
@@ -119,7 +126,7 @@ public class SearchIndexService {
         searchIndex.setFullTextContent(fullText.trim());
 
         searchIndexRepository.save(searchIndex);
-        log.info("SearchIndex updated for UserId: {}", user.getId());
+
     }
 
     // TODO: updateSearchIndexForComment, updateSearchIndexForReview 등 추가

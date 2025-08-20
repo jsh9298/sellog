@@ -23,6 +23,6 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
             @Param("lastId") UUID lastId, Pageable pageable);
 
     // 특정 사용자가 팔로우하는 모든 사용자의 ID를 조회
-    @Query("SELECT f.followed.id FROM Follow f WHERE f.follower.id = :followerId")
-    List<UUID> findFollowingIdsByFollowerId(@Param("followerId") UUID followerId);
+    @Query("SELECT f.followed.id FROM Follow f WHERE f.follower.userId = :followerId")
+    List<UUID> findFollowingIdsByFollowerId(@Param("followerId") String followerId);
 }
