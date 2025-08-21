@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.dto.response;
 
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.domain.user.model.entity.user.Gender;
 
 import lombok.AllArgsConstructor;
@@ -29,4 +30,6 @@ public final class UserProfileResponse {
     private final Long productCount;
     private final Long followCount; // 팔로윙
     private final Long followedCount; // 팔로워
+
+    private final CursorPageResponse<SimplePostList> postLists;
 }

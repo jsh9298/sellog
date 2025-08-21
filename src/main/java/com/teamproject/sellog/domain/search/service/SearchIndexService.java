@@ -2,6 +2,7 @@ package com.teamproject.sellog.domain.search.service;
 
 import com.teamproject.sellog.domain.post.model.entity.Post; // Post import
 import com.teamproject.sellog.domain.auth.service.event.UserCreatedEvent;
+import com.teamproject.sellog.domain.auth.service.event.UserDeletedEvent;
 import com.teamproject.sellog.domain.post.model.entity.HashBoard; // HashBoard import
 import com.teamproject.sellog.domain.post.model.entity.HashTag; // HashTag import
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex; // SearchIndex import
@@ -15,16 +16,12 @@ import com.teamproject.sellog.domain.user.repository.UserRepository; // UserRepo
 import com.teamproject.sellog.domain.user.service.event.UserUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,10 +60,9 @@ public class SearchIndexService {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleUserDeleted(UserCreatedEvent event) {
+    public void handleUserDeleted(UserDeletedEvent event) {
         searchIndexRepository.deleteBySourceIdAndSourceType(event.getUser().getId(), "USER");
     }
-    // TODO: UserCreatedEvent, UserDeletedEvent도 정의 및 핸들링 필요
 
     // --- SearchIndex 업데이트 로직 ---
     @Transactional
@@ -128,6 +124,4 @@ public class SearchIndexService {
         searchIndexRepository.save(searchIndex);
 
     }
-
-    // TODO: updateSearchIndexForComment, updateSearchIndexForReview 등 추가
 }

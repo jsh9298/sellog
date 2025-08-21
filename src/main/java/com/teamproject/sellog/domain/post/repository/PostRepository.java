@@ -12,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.teamproject.sellog.domain.post.model.entity.Post;
+import com.teamproject.sellog.domain.post.model.entity.PostType;
+import com.teamproject.sellog.domain.user.model.dto.response.SimplePostList;
+import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, UUID> {
@@ -23,5 +26,13 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     @Query("SELECT p FROM Post p WHERE p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
     List<Post> findAllByIdAndCursor(@Param("lastCreateAt") Timestamp lastCreateAt, @Param("lastId") UUID lastId,
+            Pageable pageable);
+
+    List<SimplePostList> findAllByAuthorAndPostType(User user, PostType type, Pageable pageable);
+
+    @Query("SELECT p FROM Post p WHERE p.author = :user AND p.postType = :type AND p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
+    List<SimplePostList> findAllByAuthorAndPostTypeAndCursor(User user, PostType type,
+            @Param("lastCreateAt") Timestamp lastCreateAt,
+            @Param("lastId") UUID lastId,
             Pageable pageable);
 }

@@ -1,4 +1,3 @@
-// src/main/java/com/teamproject.sellog.domain.search.repository/SearchIndexRepository.java
 package com.teamproject.sellog.domain.search.repository;
 
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
@@ -42,7 +41,11 @@ public interface SearchIndexRepository extends JpaRepository<SearchIndex, UUID> 
         @Query(value = "SELECT si FROM SearchIndex si WHERE  si.sourceType = 'USER' AND (:keyword IS NULL OR :keyword = '' OR MATCH(si.fullTextContent) AGAINST(:keyword IN NATURAL LANGUAGE MODE) )", nativeQuery = true)
         Page<SearchIndex> searchUser(@Param("keyword") String keyword, Pageable pageable);
 
-        // 자동 완성 추천어 조회
+        // 게시글 검색
+        @Query(value = "SELECT si FROM SearchIndex si WHERE si.sourceType = 'POST' AND(:keyword IS NULL OR :keyword = ''OR MATCH(si.fullTextContent) AGAINST(:keyword IN NATURAL LANGUAGE MODE) )", nativeQuery = true)
+        Page<SearchIndex> searchPost(@Param("keyword") String keyword, Pageable pageable);
+
+        // 자동 완성 추천어 조회 --> 게시글 추천 구현 도전할때, 같이 외부로 빼서 구현해볼 생각임.
         // main_title에 B-Tree 인덱스 필요 (LIKE 검색 최적화)
         @Query(value = "SELECT DISTINCT si.mainTitle FROM SearchIndex si " +
                         "WHERE si.mainTitle LIKE :partialKeyword% " + // 접두사 매칭

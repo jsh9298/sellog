@@ -1,13 +1,17 @@
 package com.teamproject.sellog.domain.user.mapper;
 
+import java.util.List;
+
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.domain.user.model.dto.UserContentCount;
 import com.teamproject.sellog.domain.user.model.dto.request.UserProfileRequest;
+import com.teamproject.sellog.domain.user.model.dto.response.SimplePostList;
 import com.teamproject.sellog.domain.user.model.dto.response.UserPreviewResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.UserProfileResponse;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
@@ -36,7 +40,8 @@ public interface UserInfoMapper {
     void updateUserFromRequest(UserProfileRequest dto, @MappingTarget User user);
 
     UserProfileResponse EntityToResponse(UserProfile userprofile, UserPrivate userprivate, User user,
-            UserContentCount userContentCount);
+            UserContentCount userContentCount, CursorPageResponse<SimplePostList> postLists);
 
-    UserPreviewResponse EntityToResponse(UserProfile userprofile, UserContentCount userContentCount);
+    UserPreviewResponse EntityToResponse(UserProfile userprofile, UserContentCount userContentCount,
+            CursorPageResponse<SimplePostList> postLists);
 }

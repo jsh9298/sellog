@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID; // UUID 사용 예시
 
 @RestController
 @RequestMapping("/api/search")
@@ -29,13 +28,6 @@ public class SearchController {
         String userId = request.getAttribute("authenticatedUserId").toString();
         Page<SearchIndex> results = searchService.unifiedSearch(dto, userId);
         return ResponseEntity.ok(results);
-    }
-
-    // 인기 검색어 추천 API
-    @GetMapping("/suggestions/popular")
-    public ResponseEntity<List<String>> getPopularSuggestions(@RequestParam(defaultValue = "10") int limit) {
-        List<String> suggestions = searchService.getPopularSearchKeywords(limit);
-        return ResponseEntity.ok(suggestions);
     }
 
     // 자동 완성 검색어 추천 API

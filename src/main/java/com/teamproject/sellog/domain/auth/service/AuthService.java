@@ -23,6 +23,7 @@ import com.teamproject.sellog.domain.auth.model.jwt.JwtProvider;
 import com.teamproject.sellog.domain.auth.model.jwt.PasswordHasher;
 import com.teamproject.sellog.domain.auth.repository.AuthRepository;
 import com.teamproject.sellog.domain.auth.service.event.UserCreatedEvent;
+import com.teamproject.sellog.domain.auth.service.event.UserDeletedEvent;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountStatus;
 import com.teamproject.sellog.domain.user.model.entity.user.AccountVisibility;
 import com.teamproject.sellog.domain.user.model.entity.user.Role;
@@ -203,7 +204,7 @@ public class AuthService {
 
         // 3. 현재 사용 중인 액세스 토큰 및 리프레시 토큰 무효화 (블랙리스트 추가)
         logoutUser(accessToken, refreshToken); // 로그아웃 로직 재활용
-
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user));
         authRepository.delete(user); // User 테이블 데이터 삭제
     }
 

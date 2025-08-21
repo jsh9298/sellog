@@ -2,6 +2,7 @@
 package com.teamproject.sellog.domain.search.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "search_index") // 검색 전용 테이블
 public class SearchIndex {
 
@@ -52,21 +54,4 @@ public class SearchIndex {
     private Point locationPoint;
     @Column(name = "price") // 상품 게시글의 가격
     private BigInteger price;
-
-    // 생성자나 빌더를 통해 값 설정
-    public SearchIndex(UUID sourceId, String sourceType, String fullTextContent, String mainTitle, String subContent,
-            String thumbnailUrl, Timestamp createdAt, BigInteger likeCount, String authorId, Point locationPoint,
-            BigInteger price) {
-        this.sourceId = sourceId;
-        this.sourceType = sourceType;
-        this.fullTextContent = fullTextContent;
-        this.mainTitle = mainTitle;
-        this.subContent = subContent;
-        this.thumbnailUrl = thumbnailUrl;
-        this.createdAt = createdAt;
-        this.likeCount = likeCount;
-        this.authorId = authorId;
-        this.locationPoint = locationPoint;
-        this.price = price;
-    }
 }
