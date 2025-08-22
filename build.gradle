@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.4'
+	id 'org.springframework.boot' version '3.5.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -32,6 +32,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -40,7 +41,7 @@ dependencies {
 	implementation 'com.azure.spring:spring-cloud-azure-starter-keyvault'
 	implementation 'com.azure.spring:spring-cloud-azure-starter-storage'
 	
-	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.5.4'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	implementation 'org.hibernate:hibernate-spatial:7.0.9.Final'
 
 	compileOnly 'org.projectlombok:lombok'

@@ -15,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -79,5 +80,12 @@ public class Comment {
     @PreUpdate
     public void onUpdate() {
         this.updateAt = Timestamp.valueOf(LocalDateTime.now());
+    }
+
+    @PostPersist
+    public void onCreated() {
+        if (this.groupId == null) {
+            this.groupId = this.id;
+        }
     }
 }

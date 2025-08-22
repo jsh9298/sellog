@@ -27,4 +27,6 @@ public class PostRequestDto {
     private Double longitude;
     private String place; // 장소
     private BigInteger price;
+
+    private Boolean isPublic; // true - 전체 공개 false - 팔로워 공개
 }

@@ -3,7 +3,6 @@ package com.teamproject.sellog.domain.user.service;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +13,6 @@ import com.teamproject.sellog.common.accountsUtils.CheckStatus;
 import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
-import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.user.mapper.UserInfoMapper;

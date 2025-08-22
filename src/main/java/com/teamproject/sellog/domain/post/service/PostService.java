@@ -66,7 +66,9 @@ public class PostService {
         if (dto.getTagNames() != null && dto.getTagNames().size() > 0) {
             addTagsToPost(post, dto.getTagNames());
         }
-        eventPublisher.publishEvent(new PostCreatedEvent(this, post));
+        if (dto.getIsPublic()) {
+            eventPublisher.publishEvent(new PostCreatedEvent(this, post));
+        }
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +118,8 @@ public class PostService {
         if (dto.getType() == PostType.PRODUCT) {
             post.setPrice(dto.getPrice());
             post.setPlace(dto.getPlace());
+        } else {
+            post.setPublic(dto.getIsPublic()); // 일반 게시글 일 경우 공개/비공개 선택
         }
         return post;
     }

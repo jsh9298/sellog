@@ -71,6 +71,9 @@ public class Post {
     @Column(name = "content", nullable = false)
     private String content;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
+
     @Column(name = "create_at", nullable = false)
     private Timestamp createAt;
 
