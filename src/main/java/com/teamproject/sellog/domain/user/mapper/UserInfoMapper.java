@@ -1,7 +1,5 @@
 package com.teamproject.sellog.domain.user.mapper;
 
-import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,28 +18,28 @@ import com.teamproject.sellog.domain.user.model.entity.user.UserProfile;
 
 @Mapper(componentModel = "spring")
 public interface UserInfoMapper {
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 
-    @Mapping(source = "nickname", target = "nickname")
-    @Mapping(source = "profileMessage", target = "profileMessage")
-    @Mapping(source = "profileThumbURL", target = "profileThumbURL")
-    @Mapping(source = "profileURL", target = "profileURL")
-    void updateProfileFromRequest(UserProfileRequest dto, @MappingTarget UserProfile userProfile);
+        @Mapping(source = "nickname", target = "nickname")
+        @Mapping(source = "profileMessage", target = "profileMessage")
+        @Mapping(source = "profileThumbURL", target = "profileThumbURL")
+        @Mapping(source = "profileURL", target = "profileURL")
+        void updateProfileFromRequest(UserProfileRequest dto, @MappingTarget UserProfile userProfile);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "userName", target = "userName")
-    @Mapping(source = "gender", target = "gender")
-    @Mapping(source = "birthDay", target = "birthDay")
-    @Mapping(source = "phoneNumber", target = "phoneNumber")
-    @Mapping(source = "userAddress", target = "userAddress")
-    void updatePrivateFromRequest(UserProfileRequest dto, @MappingTarget UserPrivate userPrivate);
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        @Mapping(source = "userName", target = "userName")
+        @Mapping(source = "gender", target = "gender")
+        @Mapping(source = "birthDay", target = "birthDay")
+        @Mapping(source = "phoneNumber", target = "phoneNumber")
+        @Mapping(source = "userAddress", target = "userAddress")
+        void updatePrivateFromRequest(UserProfileRequest dto, @MappingTarget UserPrivate userPrivate);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateUserFromRequest(UserProfileRequest dto, @MappingTarget User user);
+        @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+        void updateUserFromRequest(UserProfileRequest dto, @MappingTarget User user);
 
-    UserProfileResponse EntityToResponse(UserProfile userprofile, UserPrivate userprivate, User user,
-            UserContentCount userContentCount, CursorPageResponse<SimplePostList> postLists);
+        UserProfileResponse EntityToResponse(UserProfile userprofile, UserPrivate userprivate, User user,
+                        UserContentCount userContentCount, CursorPageResponse<SimplePostList> postLists);
 
-    UserPreviewResponse EntityToResponse(UserProfile userprofile, UserContentCount userContentCount,
-            CursorPageResponse<SimplePostList> postLists);
+        UserPreviewResponse EntityToResponse(UserProfile userprofile, UserContentCount userContentCount,
+                        CursorPageResponse<SimplePostList> postLists);
 }

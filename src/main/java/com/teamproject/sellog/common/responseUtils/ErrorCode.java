@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
-import com.nimbusds.oauth2.sdk.token.Tokens;
-
 //gpt 딸깍
 @Getter
 @RequiredArgsConstructor
@@ -37,7 +35,14 @@ public enum ErrorCode {
 
     // 리뷰 관련
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "401", "해당 리뷰를 찾을 수 없습니다."),
-    REVIEW_DENY_MULTIPLE(HttpStatus.FORBIDDEN, "402", "이미 리뷰를 작성한 게시글입니다.");
+    REVIEW_DENY_MULTIPLE(HttpStatus.FORBIDDEN, "402", "이미 리뷰를 작성한 게시글입니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "C001", "해당 댓글을 찾을 수 없습니다."),
+    COMMENT_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "C002", "댓글을 수정하거나 삭제할 권한이 없습니다."),
+    COMMENT_IS_DELETED(HttpStatus.BAD_REQUEST, "C003", "삭제된 댓글에는 답글을 달 수 없습니다."),
+    REVIEW_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "R002", "리뷰를 수정하거나 삭제할 권한이 없습니다."),
+    CANNOT_REVIEW_OWN_POST(HttpStatus.BAD_REQUEST, "R003", "자신이 작성한 판매 게시글에는 리뷰를 남길 수 없습니다."),
+    CANNOT_REVIEW_NON_PRODUCT(HttpStatus.BAD_REQUEST, "R004", "판매 게시글에만 리뷰를 남길 수 있습니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "R005", "이미 해당 게시글에 리뷰를 작성했습니다.");
 
     private final HttpStatus httpStatus; // HTTP 상태 코드 (예: 400 Bad Request, 404 Not Found)
     private final String code; // 애플리케이션 내부에서 사용할 커스텀 에러 코드 (예: USER-001)

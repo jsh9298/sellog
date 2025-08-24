@@ -33,7 +33,9 @@ import com.teamproject.sellog.domain.user.model.entity.user.UserProfile;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class AuthService {
     private final AuthRepository authRepository;
@@ -43,6 +45,12 @@ public class AuthService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
+
+    @Value("${user.default-profile-url}")
+    private String defaultProfileUrl;
+
+    @Value("${user.default-profile-thumb-url}")
+    private String defaultProfileThumbUrl;
 
     public AuthService(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService,
             @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds,
@@ -56,13 +64,8 @@ public class AuthService {
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
-    private static final String REFRESH_TOKEN_BLACKLIST_PREFIX = "refreshToken:blacklist:";
-
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
-
-    private static final String REFRESH_TOKEN_WHITELIST_PREFIX = "refreshToken:whitelist:";
-
-    private static final String USERID_PREFIX = "userId:";
+    private static final String REFRESH_TOKEN_PREFIX = "refreshToken:";
 
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
@@ -86,10 +89,8 @@ public class AuthService {
 
             UserProfile userInfoProfile = new UserProfile();
             userInfoProfile.setNickname(userRegisterDto.getNickname());
-            userInfoProfile.setProfileURL(
-                    "https://sellogstorage.blob.core.windows.net/outcontents/Default/origin/307ce493-b254-4b2d-8ba4-d12c080d6651.jpg");
-            userInfoProfile.setProfileThumbURL(
-                    "https://sellogstorage.blob.core.windows.net/outcontents/Default/thumbnails/profile/307ce493-b254-4b2d-8ba4-d12c080d6651.webp");
+            userInfoProfile.setProfileURL(defaultProfileUrl);
+            userInfoProfile.setProfileThumbURL(defaultProfileThumbUrl);
 
             newUser.setUserPrivate(userInfoPrivate);
             newUser.setUserProfile(userInfoProfile);
@@ -124,7 +125,7 @@ public class AuthService {
         user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
         JWT jwt = jwtProvider.createJWT(claims);
 
-        redisService.setValue(USERID_PREFIX + user.getUserId() + REFRESH_TOKEN_WHITELIST_PREFIX,
+        redisService.setValue(REFRESH_TOKEN_PREFIX + user.getUserId(),
                 jwt.getRefreshToken(),
                 refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
 
@@ -134,54 +135,29 @@ public class AuthService {
         return response;
     }
 
-    // -------------------수정중-------------
     @Transactional
     public void logoutUser(String accessToken, String refreshToken) {
-        // 1. 액세스 토큰 유효성 검증 (만료 여부는 검증하지 않음)
-        Claims accessClaims;
+        // 1. Access Token 블랙리스트에 추가
         try {
-            accessClaims = jwtProvider.getClaims(accessToken);
-        } catch (JwtException e) {
-            // 이미 만료된 토큰이거나 유효하지 않은 토큰은 무시하거나 로깅
-            System.err.println("Logout failed for invalid access token: " + e.getMessage());
-            // return; // 이미 유효하지 않은 토큰은 블랙리스트에 추가할 필요 없음
-            accessClaims = null; // 클레임 가져오기 실패 시 null 처리
-        }
-
-        // 2. 액세스 토큰을 블랙리스트에 추가 (남은 유효 시간 동안)
-        if (accessClaims != null) {
-            Date expiration = accessClaims.getExpiration();
-            if (expiration != null) {
-                long remainingTime = expiration.getTime() - System.currentTimeMillis();
-                if (remainingTime > 0) {
-                    redisService.setValue(ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken, "logout", remainingTime,
-                            TimeUnit.MILLISECONDS);
-                }
+            Claims accessClaims = jwtProvider.getClaims(accessToken);
+            long remainingTime = accessClaims.getExpiration().getTime() - System.currentTimeMillis();
+            if (remainingTime > 0) {
+                redisService.setValue(ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken, "logout", remainingTime,
+                        TimeUnit.MILLISECONDS);
             }
+        } catch (JwtException e) {
+            // 만료되었거나 유효하지 않은 Access Token은 블랙리스트에 추가할 필요 없음
+            log.warn("Logout with invalid access token: {}", e.getMessage());
         }
 
-        // 3. 리프레시 토큰을 블랙리스트에 추가 (리프레시 토큰의 유효 시간 동안)
-        Claims refreshClaims;
+        // 2. Refresh Token 화이트리스트에서 삭제
         try {
-            refreshClaims = jwtProvider.getClaims(refreshToken);
+            Claims refreshClaims = jwtProvider.getClaims(refreshToken);
+            String userId = refreshClaims.get("userId", String.class);
+            redisService.deleteValue(REFRESH_TOKEN_PREFIX + userId);
         } catch (JwtException e) {
-            // 이미 만료된 토큰이거나 유효하지 않은 토큰은 무시하거나 로깅
-            System.err.println("Logout failed for invalid refresh token: " + e.getMessage());
-            // return; // 이미 유효하지 않은 토큰은 블랙리스트에 추가할 필요 없음
-            refreshClaims = null; // 클레임 가져오기 실패 시 null 처리
-        }
-
-        if (refreshClaims != null) {
-            Date expiration = refreshClaims.getExpiration();
-            if (expiration != null) {
-                long remainingTime = expiration.getTime() - System.currentTimeMillis();
-                if (remainingTime > 0) {
-                    redisService.deleteValue(
-                            USERID_PREFIX + refreshClaims.get("userId", String.class) + REFRESH_TOKEN_WHITELIST_PREFIX);
-                    redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + refreshToken, "logout", remainingTime,
-                            TimeUnit.MILLISECONDS);
-                }
-            }
+            // 만료되었거나 유효하지 않은 Refresh Token은 이미 화이트리스트에 없거나 의미 없음
+            log.warn("Logout with invalid refresh token: {}", e.getMessage());
         }
     }
 
@@ -205,7 +181,10 @@ public class AuthService {
         // 3. 현재 사용 중인 액세스 토큰 및 리프레시 토큰 무효화 (블랙리스트 추가)
         logoutUser(accessToken, refreshToken); // 로그아웃 로직 재활용
         eventPublisher.publishEvent(new UserDeletedEvent(this, user));
-        authRepository.delete(user); // User 테이블 데이터 삭제
+
+        // [개선] 물리적 삭제(Hard Delete) 대신 논리적 삭제(Soft Delete) 수행
+        user.setAccountStatus(AccountStatus.DELETED); // 계정 상태를 '삭제됨'으로 변경
+        // authRepository.delete(user); // User 테이블 데이터 삭제 로직 제거
     }
 
     // 사용자 ID로 사용자 정보 조회 (토큰 검증 후 사용될 수 있음)
@@ -219,11 +198,6 @@ public class AuthService {
         return redisService.hasKey(ACCESS_TOKEN_BLACKLIST_PREFIX + token);
     }
 
-    // 리프레시 토큰이 블랙리스트에 있는지 확인
-    public boolean isRefreshTokenBlacklisted(String token) {
-        return redisService.hasKey(REFRESH_TOKEN_BLACKLIST_PREFIX + token);
-    }
-
     @Transactional
     public JWT refreshToken(String refreshToken) {
         // 1. 리프레시 토큰 유효성 검증 (서명, 만료 시간 등)
@@ -235,22 +209,19 @@ public class AuthService {
             throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
 
-        // 2. 리프레시 토큰이 블랙리스트에 있는지 확인
-        if (isRefreshTokenBlacklisted(refreshToken)) {
-            // 이미 사용되었거나 무효화된 토큰인 경우
-            throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
-        }
-        // 3. 토큰에서 사용자 ID 추출
+        // 2. 토큰에서 사용자 ID 추출 및 화이트리스트 검증
         String userId = claims.get("userId", String.class);
+        String storedToken = (String) redisService.getValue(REFRESH_TOKEN_PREFIX + userId); // 타입 캐스팅 추가
 
-        if (!redisService.getValue(USERID_PREFIX + userId + REFRESH_TOKEN_WHITELIST_PREFIX).equals(refreshToken)) {
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            // 저장된 토큰이 없거나, 요청된 토큰과 일치하지 않으면 무효한 토큰으로 간주
             throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
-        // 4. 사용자 정보 조회
+        // 3. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 5. 사용자 계정 상태 확인
+        // 4. 사용자 계정 상태 확인
         if (AccountStatus.INACTIVE.equals(user.getAccountStatus())) {
             throw new BusinessException(ErrorCode.INACTIVE_USER);
         }
@@ -258,22 +229,14 @@ public class AuthService {
         // 6. 기존 리프레시 토큰을 블랙리스트에 추가 (재사용 방지)
         // 기존 토큰의 남은 유효 시간 동안 블랙리스트에 유지
         Date expiration = claims.getExpiration();
-        if (expiration != null) {
-            long remainingTime = expiration.getTime() - System.currentTimeMillis();
-            if (remainingTime > 0) {
-                redisService.setValue(REFRESH_TOKEN_BLACKLIST_PREFIX + refreshToken, "used", remainingTime,
-                        TimeUnit.MILLISECONDS);
-            }
-        }
 
-        // 7. 새로운 액세스 토큰 및 리프레시 토큰 생성
+        // 5. 새로운 토큰 생성 및 화이트리스트 갱신
         Map<String, Object> Claims = new HashMap<>();
         Claims.put("userId", user.getUserId());
         Claims.put("role", user.getRole());
         user.setLastLogin(Timestamp.valueOf(LocalDateTime.now())); // 마지막 로그인 업데이트
         JWT jwt = jwtProvider.createJWT(Claims);
-        redisService.setValue(
-                USERID_PREFIX + userId + REFRESH_TOKEN_WHITELIST_PREFIX,
+        redisService.setValue(REFRESH_TOKEN_PREFIX + userId,
                 jwt.getRefreshToken(), refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
         return jwt;
     }

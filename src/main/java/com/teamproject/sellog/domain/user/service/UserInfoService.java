@@ -154,7 +154,7 @@ public class UserInfoService {
             nextCreateAt = lastPost.getCreateAt();
             nextId = lastPost.getPostId();
         }
-        return new CursorPageResponse<>(posts, hasNext, nextCreateAt, nextId);
+        return new CursorPageResponse<>(posts, hasNext, null, nextCreateAt, nextId);
 
     }
 }

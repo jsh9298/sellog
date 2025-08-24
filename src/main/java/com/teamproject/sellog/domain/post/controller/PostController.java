@@ -1,7 +1,5 @@
 package com.teamproject.sellog.domain.post.controller;
 
-import java.sql.Timestamp;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -16,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
+import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
+import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.service.PostService;
@@ -25,8 +26,10 @@ import com.teamproject.sellog.domain.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import java.sql.Timestamp;
 import jakarta.servlet.http.Cookie;
 
 @RestController
@@ -38,15 +41,14 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/post")
-    @Operation(summary = "목록(-)", description = "게시글 목록 - 현재 정렬 기준 종류 정하는 중. 추천 시스템의 경우 python으로 외부 서버로 구현할까 고민중..")
-    public ResponseEntity<?> postList(
-            // @RequestParam(required = false) List<PostSort> sort,
+    @Operation(summary = "목록(-)", description = "게시글 목록. 게시글 타입(전체,일반,판매)에 따라 필터링. 최신순으로 정렬")
+    public ResponseEntity<?> postList( // 반환 타입 수정
             @RequestParam(required = false) PostType type,
             @RequestParam(required = false) Timestamp lastCreateAt,
             @RequestParam(required = false) UUID lastId,
             @RequestParam(defaultValue = "10") int limit) {
-
-        return null;
+        CursorPageResponse<PostListResponseDto> responseData = postService.listPost(type, lastCreateAt, lastId, limit);
+        return ResponseEntity.ok(RestResponse.success("게시글 목록을 성공적으로 조회했습니다.", responseData));
     }
 
     @GetMapping("/post/{postId}")
@@ -61,7 +63,7 @@ public class PostController {
 
     @PostMapping("/post")
     @Operation(summary = "업로드(+)", description = "게시글 업로드시 사용")
-    public ResponseEntity<?> posting(@RequestBody PostRequestDto postRequestDto) {
+    public ResponseEntity<?> posting(@Valid @RequestBody PostRequestDto postRequestDto) {
 
         postService.posting(postRequestDto);
         return ResponseEntity.ok(RestResponse.success("posting success", null));
@@ -70,7 +72,7 @@ public class PostController {
     @PatchMapping("/post/{postId}")
     @Operation(summary = "수정(+)", description = "게시글 수정시 사용")
     public ResponseEntity<?> editPost(@PathVariable UUID postId, HttpServletRequest request,
-            @RequestBody PostRequestDto dto) {
+            @Valid @RequestBody PostRequestDto dto) {
         String userId = request.getAttribute("authenticatedUserId").toString();
 
         PostResponseDto response = postService.editPost(postId, dto, userId);
@@ -103,7 +105,7 @@ public class PostController {
     public ResponseEntity<?> toggleDislike(@PathVariable UUID postId, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
 
-        postService.toggleDisLike(postId, userId);
+        postService.toggleDislike(postId, userId);
         return ResponseEntity.ok(RestResponse.success("toggle dislike success", null));
 
     }

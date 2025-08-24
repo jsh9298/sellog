@@ -1,15 +1,10 @@
 package com.teamproject.sellog.domain.post.model.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode
+@NoArgsConstructor
 public class CommentRequest {
-    private String userId; // 작성자
     private String content;
 }

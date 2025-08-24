@@ -1,2 +1,4 @@
 Flask
 pymysql
+pandas
+scikit-surprise

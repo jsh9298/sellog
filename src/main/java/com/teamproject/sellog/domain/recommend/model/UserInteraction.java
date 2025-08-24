@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,18 +17,19 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInteraction {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO) // UUID는 IDENTITY 전략과 호환되지 않습니다. AUTO로 변경합니다.
     private UUID id;
-    private UUID userId;
+    private String userId; // userId를 String 타입으로 변경
     private UUID itemId;
     private String interactionType; // 예: "VIEW", "PURCHASE", "LIKE"
     private LocalDateTime timestamp; // 소요시간? 체류시간?
 
-    public UserInteraction(UUID userId, UUID itemId, String interactionType) {
+    public UserInteraction(String userId, UUID itemId, String interactionType) {
         this.userId = userId;
         this.itemId = itemId;
         this.interactionType = interactionType;

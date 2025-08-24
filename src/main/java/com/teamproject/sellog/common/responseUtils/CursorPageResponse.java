@@ -16,6 +16,7 @@ import java.util.UUID;
 public final class CursorPageResponse<T> {
     private final List<T> content; // 현재 페이지의 데이터 목록
     private final boolean hasNext; // 다음 페이지가 있는지 여부
+    private final UUID nextGroupId; // 다음 요청에 사용할 커서 (groupId)
     private final Timestamp nextCreateAt; // 다음 요청에 사용할 커서 (createAt)
     private final UUID nextId; // 다음 요청에 사용할 커서 (id)
 }

@@ -64,7 +64,7 @@ public class FollowBlockService {
             nextId = lastFollow.getId();
         }
 
-        return new CursorPageResponse<>(followDto, hasNext, nextCreateAt, nextId);
+        return new CursorPageResponse<>(followDto, hasNext, null, nextCreateAt, nextId);
     }
 
     @Transactional(readOnly = true)
@@ -89,7 +89,7 @@ public class FollowBlockService {
             nextCreateAt = lastBlock.getCreateAt();
             nextId = lastBlock.getId();
         }
-        return new CursorPageResponse<>(blockDto, hasNext, nextCreateAt, nextId);
+        return new CursorPageResponse<>(blockDto, hasNext, null, nextCreateAt, nextId);
     }
 
     @Transactional

@@ -15,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PostPersist;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -52,11 +51,11 @@ public class Comment {
     @Column(name = "group_id")
     private UUID groupId;
 
-    @Column(name = "sort_order", nullable = false)
-    private BigInteger sortOrder = BigInteger.ZERO;
-
     @Column(name = "depth", nullable = false)
     private BigInteger depth = BigInteger.ZERO;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = true)
@@ -71,8 +70,6 @@ public class Comment {
         if (this.createAt == null) {
             this.createAt = Timestamp.valueOf(LocalDateTime.now());
         }
-        if (this.sortOrder == null)
-            this.sortOrder = BigInteger.ZERO;
         if (this.depth == null)
             this.depth = BigInteger.ZERO;
     }
@@ -82,10 +79,7 @@ public class Comment {
         this.updateAt = Timestamp.valueOf(LocalDateTime.now());
     }
 
-    @PostPersist
-    public void onCreated() {
-        if (this.groupId == null) {
-            this.groupId = this.id;
-        }
+    public void delete() {
+        this.deleted = true;
     }
 }

@@ -12,4 +12,7 @@ import java.util.UUID;
 public interface UserInteractionRepository extends JpaRepository<UserInteraction, UUID> {
     // 특정 유저의 상호작용 기록 조회
     List<UserInteraction> findByUserId(UUID userId);
+
+    // userId, itemId, interactionType을 기준으로 상호작용 기록을 삭제합니다.
+    void deleteByUserIdAndItemIdAndInteractionType(String userId, UUID itemId, String interactionType);
 }

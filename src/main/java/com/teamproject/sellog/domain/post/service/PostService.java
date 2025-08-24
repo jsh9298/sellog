@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,8 @@ import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.TagRepository;
 import com.teamproject.sellog.domain.post.service.event.PostCreatedEvent;
 import com.teamproject.sellog.domain.post.service.event.PostDeletedEvent;
+import com.teamproject.sellog.domain.post.service.event.PostDislikedEvent;
+import com.teamproject.sellog.domain.post.service.event.PostLikedEvent;
 import com.teamproject.sellog.domain.post.service.event.PostUpdatedEvent;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
@@ -190,8 +193,10 @@ public class PostService {
         feedback.setUserId(userId);
         feedback.setType(FeedBackType.LIKE);
         if (post.addFeedBack(feedback, FeedBackType.LIKE)) {
+            eventPublisher.publishEvent(new PostLikedEvent(this, postId, userId, true));
             return;
         } else if (post.removeFeedBack(feedback, FeedBackType.LIKE)) {
+            eventPublisher.publishEvent(new PostLikedEvent(this, postId, userId, false));
             return;
         } else {
             throw new BusinessException(ErrorCode.POST_DENY_MULTIPLE);
@@ -199,7 +204,7 @@ public class PostService {
     }
 
     @Transactional
-    public void toggleDisLike(UUID postId, String userId) {
+    public void toggleDislike(UUID postId, String userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
             throw new BusinessException(ErrorCode.POST_DENY_OWN_POST);
@@ -209,8 +214,10 @@ public class PostService {
         feedback.setUserId(userId);
         feedback.setType(FeedBackType.DISLIKE);
         if (post.addFeedBack(feedback, FeedBackType.DISLIKE)) {
+            eventPublisher.publishEvent(new PostDislikedEvent(this, postId, userId, true));
             return;
         } else if (post.removeFeedBack(feedback, FeedBackType.DISLIKE)) {
+            eventPublisher.publishEvent(new PostDislikedEvent(this, postId, userId, false));
             return;
         } else {
             throw new BusinessException(ErrorCode.POST_DENY_MULTIPLE);
@@ -220,27 +227,44 @@ public class PostService {
     @Transactional(readOnly = true)
     public CursorPageResponse<PostListResponseDto> listPost(PostType type, Timestamp lastCreateAt,
             UUID lastId, int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt", "id"));
+        // 다음 페이지 확인을 위해 1개 더 조회
+        Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "createAt", "id"));
 
-        // 정렬 기준 완전하게 정해지기 전까지는 중지
+        List<Post> posts = postRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        List<Post> posts;
-        if (lastCreateAt == null && lastId == null) {
-            posts = postRepository.findAllByOrderByIdDesc(pageable); // 기본 정렬
-        } else {
-            posts = postRepository.findAllByIdAndCursor(lastCreateAt, lastId, pageable);
-        }
+            // PostType 필터
+            if (type != null) {
+                predicates.add(cb.equal(root.get("postType"), type));
+            }
 
-        List<PostListResponseDto> postDto = posts.stream().map(postMapper::toPostResponse).collect(Collectors.toList());
-        boolean hasNext = posts.size() == limit;
+            // 커서 기반 페이지네이션 조건
+            if (lastCreateAt != null && lastId != null) {
+                Predicate timePredicate = cb.lessThan(root.get("createAt"), lastCreateAt);
+                Predicate tieBreaker = cb.and(
+                        cb.equal(root.get("createAt"), lastCreateAt),
+                        cb.lessThan(root.get("id"), lastId));
+                predicates.add(cb.or(timePredicate, tieBreaker));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        }, pageable).getContent();
+
+        boolean hasNext = posts.size() > limit;
+        List<Post> pageContent = hasNext ? posts.subList(0, limit) : posts;
+
+        List<PostListResponseDto> postDto = pageContent.stream().map(postMapper::toPostResponse)
+                .collect(Collectors.toList());
+
         Timestamp nextCreateAt = null;
         UUID nextId = null;
         if (hasNext) {
-            Post lastPost = posts.get(posts.size() - 1);
+            Post lastPost = pageContent.get(limit - 1);
             nextCreateAt = lastPost.getCreateAt();
             nextId = lastPost.getId();
         }
 
-        return new CursorPageResponse<>(postDto, hasNext, nextCreateAt, nextId);
+        // CursorPageResponse에 nextGroupId 필드가 있지만 Post 목록 조회에는 필요 없으므로 null 전달
+        return new CursorPageResponse<>(postDto, hasNext, null, nextCreateAt, nextId);
     }
 }

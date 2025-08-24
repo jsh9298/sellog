@@ -127,8 +127,10 @@ public class AzureBlobService {
             }
             ca2 = existing.get().getBlobPath().get(0).toCharArray();
 
-            for (char c1 : ca1) {
-                outFilePath.append(c1);
+            if (ca1 != null) { // null 체크 추가
+                for (char c1 : ca1) {
+                    outFilePath.append(c1);
+                }
             }
             for (char c2 : ca2) {
                 originFilePath.append(c2);

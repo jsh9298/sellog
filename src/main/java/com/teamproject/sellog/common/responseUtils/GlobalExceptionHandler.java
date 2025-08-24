@@ -3,13 +3,14 @@ package com.teamproject.sellog.common.responseUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import org.springframework.http.ResponseEntity;
 import java.util.stream.Collectors;
 
 //gpt 사용, 로그 부분은 나중에 할거라 지움
@@ -29,9 +30,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         // MethodArgumentNotValidException은 Spring의 기본 예외 처리자에서 처리되므로,
         // ResponseEntityExceptionHandler를 상속하여 override 하는 것이 좋습니다.
         @Override
-        protected ResponseEntity<Object> handleMethodArgumentNotValid(
-                        MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status,
-                        WebRequest request) {
+        protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                        @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
                 // 여러 필드 에러 메시지를 조합하여 반환할 수 있습니다.
                 String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
