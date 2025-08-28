@@ -30,7 +30,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         // MethodArgumentNotValidException은 Spring의 기본 예외 처리자에서 처리되므로,
         // ResponseEntityExceptionHandler를 상속하여 override 하는 것이 좋습니다.
         @Override
-        protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+        protected ResponseEntity<Object> handleMethodArgumentNotValid(@NonNull MethodArgumentNotValidException ex,
                         @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
                 // 여러 필드 에러 메시지를 조합하여 반환할 수 있습니다.
                 String errorMessage = ex.getBindingResult().getFieldErrors().stream()
@@ -54,6 +54,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         // 4. 나머지 처리되지 않은 모든 예외 (최후의 보루)
         @ExceptionHandler(Exception.class)
         public ResponseEntity<RestResponse<?>> handleGlobalException(Exception e) {
+                System.out.println(e.getMessage());
                 return new ResponseEntity<>(
                                 RestResponse.error(ErrorCode.INTERNAL_SERVER_ERROR), // COMMON-005 사용
                                 HttpStatus.INTERNAL_SERVER_ERROR // HTTP Status는 Internal Server Error (500)

@@ -4,6 +4,7 @@ import com.teamproject.sellog.domain.search.model.dto.UnifiedSearchRequest;
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 import com.teamproject.sellog.domain.search.service.SearchService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class SearchController {
 
     // 통합 검색 API
     @GetMapping
+    @Operation(summary = "검색(+)", description = "일단 열어는 둠")
     public ResponseEntity<Page<SearchIndex>> unifiedSearch(UnifiedSearchRequest dto, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         Page<SearchIndex> results = searchService.unifiedSearch(dto, userId);
@@ -32,6 +34,7 @@ public class SearchController {
 
     // 자동 완성 검색어 추천 API
     @GetMapping("/suggestions/autocomplete")
+    @Operation(summary = "검색어 추천(+)", description = "일단 열어는 둠")
     public ResponseEntity<List<String>> getAutocompleteSuggestions(@RequestParam String query,
             @RequestParam(defaultValue = "5") int limit) {
         List<String> suggestions = searchService.getAutocompleteSuggestions(query, limit);

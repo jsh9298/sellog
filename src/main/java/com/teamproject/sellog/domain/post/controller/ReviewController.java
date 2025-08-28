@@ -35,7 +35,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("/review/{postId}")
-    @Operation(summary = "목록(-)", description = "리뷰 목록. 최신순으로 정렬")
+    @Operation(summary = "목록(+)", description = "리뷰 목록. 최신순으로 정렬")
     public ResponseEntity<RestResponse<CursorPageResponse<ReviewResponse>>> reviewList(@PathVariable UUID postId,
             @RequestParam(required = false) Timestamp lastCreateAt,
             @RequestParam(required = false) UUID lastId,

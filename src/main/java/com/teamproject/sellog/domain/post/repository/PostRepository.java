@@ -23,10 +23,12 @@ public interface PostRepository extends JpaRepository<Post, UUID>, JpaSpecificat
         @Query("UPDATE Post p SET p.likeCnt = p.likeCnt + 1 WHERE p.id = :id")
         void updateViewCount(UUID id);
 
-        List<SimplePostList> findAllByAuthorAndPostType(User user, PostType type, Pageable pageable);
+        @Query("SELECT p.id as postId, p.title as title, p.thumbnail as thumbnail, p.createAt as createAt FROM Post p WHERE p.author = :user AND p.postType = :type")
+        List<SimplePostList> findAllByAuthorAndPostType(@Param("user") User user, @Param("type") PostType type,
+                        Pageable pageable);
 
-        @Query("SELECT p FROM Post p WHERE p.author = :user AND p.postType = :type AND p.createAt < :lastCreateAt OR (p.createAt = : lastCreateAt AND p.id < :lastId) ORDER BY p.createAt DESC, p.id DESC")
-        List<SimplePostList> findAllByAuthorAndPostTypeAndCursor(User user, PostType type,
+        @Query("SELECT p.id as postId, p.title as title, p.thumbnail as thumbnail, p.createAt as createAt FROM Post p WHERE p.author = :user AND p.postType = :type AND (p.createAt < :lastCreateAt OR (p.createAt = :lastCreateAt AND p.id < :lastId)) ORDER BY p.createAt DESC, p.id DESC")
+        List<SimplePostList> findAllByAuthorAndPostTypeAndCursor(@Param("user") User user, @Param("type") PostType type,
                         @Param("lastCreateAt") Timestamp lastCreateAt,
                         @Param("lastId") UUID lastId,
                         Pageable pageable);

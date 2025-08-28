@@ -14,6 +14,7 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class SimplePostList {
     private final UUID postId;
+    private final String title;
     private final String thumbnail;
     private final Timestamp createAt;
 }

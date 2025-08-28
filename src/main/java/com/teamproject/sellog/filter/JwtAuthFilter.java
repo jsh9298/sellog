@@ -39,7 +39,7 @@ public class JwtAuthFilter implements Filter {
     }
 
     private final List<Map.Entry<String, Pattern>> NofilteringURI = Arrays.asList(
-            new AbstractMap.SimpleEntry<>("GET", Pattern.compile("^/api/[^/]+/(preview)$")));
+            new AbstractMap.SimpleEntry<>("GET", Pattern.compile("^/api/preview/[^/]+$")));
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

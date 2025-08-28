@@ -41,7 +41,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/post")
-    @Operation(summary = "목록(-)", description = "게시글 목록. 게시글 타입(전체,일반,판매)에 따라 필터링. 최신순으로 정렬")
+    @Operation(summary = "목록(+)", description = "게시글 목록. 게시글 타입(전체,일반,판매)에 따라 필터링. 최신순으로 정렬")
     public ResponseEntity<?> postList( // 반환 타입 수정
             @RequestParam(required = false) PostType type,
             @RequestParam(required = false) Timestamp lastCreateAt,
