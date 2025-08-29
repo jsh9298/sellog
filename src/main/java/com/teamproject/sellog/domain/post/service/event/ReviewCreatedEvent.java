@@ -1,15 +1,17 @@
 package com.teamproject.sellog.domain.post.service.event;
 
-import com.teamproject.sellog.domain.post.model.entity.Review;
 import lombok.Getter;
+
+import java.util.UUID;
+
 import org.springframework.context.ApplicationEvent;
 
 @Getter
 public class ReviewCreatedEvent extends ApplicationEvent {
-    private final Review review;
+    private final UUID reviewId;
 
-    public ReviewCreatedEvent(Object source, Review review) {
+    public ReviewCreatedEvent(Object source, UUID reviewId) {
         super(source);
-        this.review = review;
+        this.reviewId = reviewId;
     }
 }

@@ -32,20 +32,16 @@ public class RecommendTableService {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostCreated(PostCreatedEvent event) {
-        log.info("PostCreatedEvent received for post ID: {}", event.getPost().getId());
-        updateItemForPost(event.getPost());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostUpdated(PostUpdatedEvent event) {
-        log.info("PostUpdatedEvent received for post ID: {}", event.getPost().getId());
-        updateItemForPost(event.getPost());
+
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUpdateSearchIndex(SearchIndexEvent event) {
-        log.info("SearchIndexEvent received for source ID: {}", event.getSearchIndex().getSourceId());
-        updateItemForSearchIndex(event.getSearchIndex());
+
     }
 
     @Transactional
@@ -59,72 +55,77 @@ public class RecommendTableService {
             // item.setPrice(post.getPrice());
             // ... 기타 추천에 필요한 메타데이터 매핑
             // itemRepository.save(item);
-            log.info("Item table updated for post ID: {}", post.getId());
+
         }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostLiked(PostLikedEvent event) {
-        log.info("PostLikedEvent received for post ID: {}, user ID: {}, liked: {}",
-                event.getPostId(), event.getUserId(), event.isLiked());
+        // log.info("PostLikedEvent received for post ID: {}, user ID: {}, liked: {}",
+        // event.getPostId(), event.getUserId(), event.isLiked());
 
-        if (event.isLiked()) {
-            UserInteraction interaction = UserInteraction.builder()
-                    .userId(event.getUserId())
-                    .itemId(event.getPostId())
-                    .interactionType("like")
-                    .build();
-            userInteractionRepository.save(interaction);
-        } else {
-            userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(event.getUserId(), event.getPostId(),
-                    "like");
-        }
+        // if (event.isLiked()) {
+        // UserInteraction interaction = UserInteraction.builder()
+        // .userId(event.getUserId())
+        // .itemId(event.getPostId())
+        // .interactionType("like")
+        // .build();
+        // userInteractionRepository.save(interaction);
+        // } else {
+        // userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(event.getUserId(),
+        // event.getPostId(),
+        // "like");
+        // }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostDisliked(PostDislikedEvent event) {
-        log.info("PostDislikedEvent received for post ID: {}, user ID: {}, disliked: {}",
-                event.getPostId(), event.getUserId(), event.isDisliked());
+        // log.info("PostDislikedEvent received for post ID: {}, user ID: {}, disliked:
+        // {}",
+        // event.getPostId(), event.getUserId(), event.isDisliked());
 
-        if (event.isDisliked()) {
-            UserInteraction interaction = UserInteraction.builder()
-                    .userId(event.getUserId())
-                    .itemId(event.getPostId())
-                    .interactionType("dislike")
-                    .build();
-            userInteractionRepository.save(interaction);
-        } else {
-            userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(event.getUserId(), event.getPostId(),
-                    "dislike");
-        }
+        // if (event.isDisliked()) {
+        // UserInteraction interaction = UserInteraction.builder()
+        // .userId(event.getUserId())
+        // .itemId(event.getPostId())
+        // .interactionType("dislike")
+        // .build();
+        // userInteractionRepository.save(interaction);
+        // } else {
+        // userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(event.getUserId(),
+        // event.getPostId(),
+        // "dislike");
+        // }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewCreated(ReviewCreatedEvent event) {
-        Review review = event.getReview();
-        log.info("ReviewCreatedEvent received for review ID: {}, user ID: {}", review.getReviewId(),
-                review.getAuthor().getUserId());
+        // Review review = event.getReviewId();
+        // log.info("ReviewCreatedEvent received for review ID: {}, user ID: {}",
+        // review.getReviewId(),
+        // review.getAuthor().getUserId());
 
-        UserInteraction interaction = UserInteraction.builder()
-                .userId(review.getAuthor().getUserId())
-                .itemId(review.getPost().getId())
-                .interactionType("review")
-                .build();
+        // UserInteraction interaction = UserInteraction.builder()
+        // .userId(review.getAuthor().getUserId())
+        // .itemId(review.getPost().getId())
+        // .interactionType("review")
+        // .build();
         // .value(Double.valueOf(review.getRating())); // 평점을 상호작용 값으로 저장
-        userInteractionRepository.save(interaction);
+        // userInteractionRepository.save(interaction);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewDeleted(ReviewDeletedEvent event) {
-        Review review = event.getReview();
-        log.info("ReviewDeletedEvent received for review ID: {}, user ID: {}", review.getReviewId(),
-                review.getAuthor().getUserId());
+        // Review review = event.getReview();
+        // log.info("ReviewDeletedEvent received for review ID: {}, user ID: {}",
+        // review.getReviewId(),
+        // review.getAuthor().getUserId());
 
-        // 리뷰 삭제 시 상호작용 데이터도 삭제
-        userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(
-                review.getAuthor().getUserId(),
-                review.getPost().getId(),
-                "review");
+        // // 리뷰 삭제 시 상호작용 데이터도 삭제
+        // userInteractionRepository.deleteByUserIdAndItemIdAndInteractionType(
+        // review.getAuthor().getUserId(),
+        // review.getPost().getId(),
+        // "review");
     }
 
     @Transactional

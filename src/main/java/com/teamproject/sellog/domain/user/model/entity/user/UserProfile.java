@@ -48,6 +48,18 @@ public class UserProfile {
     @Column(name = "profile_img_origin", nullable = true)
     private String profileURL;
 
+    @Column(name = "post_count", nullable = false)
+    private long postCount = 0L;
+
+    @Column(name = "product_count", nullable = false)
+    private long productCount = 0L;
+
+    @Column(name = "follower_count", nullable = false)
+    private long followerCount = 0L;
+
+    @Column(name = "following_count", nullable = false)
+    private long followingCount = 0L;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

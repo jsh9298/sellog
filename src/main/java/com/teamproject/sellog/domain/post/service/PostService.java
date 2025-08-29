@@ -65,12 +65,20 @@ public class PostService {
     @Transactional
     public void posting(PostRequestDto dto) {
         Post post = createPost(dto);
+        User author = post.getAuthor();
+        if (author != null && author.getUserProfile() != null) {
+            if (dto.getType() == PostType.PRODUCT) {
+                author.getUserProfile().setProductCount(author.getUserProfile().getProductCount() + 1);
+            } else {
+                author.getUserProfile().setPostCount(author.getUserProfile().getPostCount() + 1);
+            }
+        }
         postRepository.save(post);
         if (dto.getTagNames() != null && dto.getTagNames().size() > 0) {
             addTagsToPost(post, dto.getTagNames());
         }
         if (dto.getIsPublic()) {
-            eventPublisher.publishEvent(new PostCreatedEvent(this, post));
+            eventPublisher.publishEvent(new PostCreatedEvent(this, post.getId()));
         }
     }
 
@@ -95,14 +103,13 @@ public class PostService {
         }
 
         List<String> tagNames = new ArrayList<String>();
-        Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+        Post post = postRepository.findWithDetailsById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Set<HashBoard> hashBoards = post.getHashBoard();
+        Set<HashBoard> hashBoards = post.getHashBoard();// N+1 위험 개선필요
         for (HashBoard hashBoard : hashBoards) {
-            Optional<HashTag> tag = tagRepository.findByHashBoard(hashBoard);
-            if (tag.isPresent()) {
-                tagNames.add(tag.get().getTagName());
-            }
+            HashTag tag = hashBoard.getTag();
+            tagNames.add(tag.getTagName());
         }
         return postMapper.EntityToResponse(post, tagNames);
     }
@@ -165,7 +172,7 @@ public class PostService {
                 tagNames = dto.getTagNames();
                 addTagsToPost(post, tagNames);
             }
-            eventPublisher.publishEvent(new PostUpdatedEvent(this, post));
+            eventPublisher.publishEvent(new PostUpdatedEvent(this, post.getId()));
             return postMapper.EntityToResponse(post, tagNames);
         }
         throw new BusinessException(ErrorCode.POST_OWNER_MISMATCH);
@@ -175,6 +182,14 @@ public class PostService {
     public void deletePost(UUID postId, String userId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
         if (CheckStatus.checkSelf(post.getAuthor().getUserId(), userId)) {
+            User author = post.getAuthor();
+            if (author != null && author.getUserProfile() != null) {
+                if (post.getPostType() == PostType.PRODUCT) {
+                    author.getUserProfile().setProductCount(Math.max(0, author.getUserProfile().getProductCount() - 1));
+                } else {
+                    author.getUserProfile().setPostCount(Math.max(0, author.getUserProfile().getPostCount() - 1));
+                }
+            }
             postRepository.delete(post);
             eventPublisher.publishEvent(new PostDeletedEvent(this, postId));
         } else {

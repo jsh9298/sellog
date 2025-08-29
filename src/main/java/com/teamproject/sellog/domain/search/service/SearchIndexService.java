@@ -17,6 +17,7 @@ import com.teamproject.sellog.domain.user.service.event.UserUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
@@ -35,12 +36,14 @@ public class SearchIndexService {
     // --- Post 엔티티 변경 이벤트 처리 ---
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostCreated(PostCreatedEvent event) {
-        updateSearchIndexForPost(event.getPost());
+        postRepository.findWithDetailsById(event.getPostId())
+                .ifPresent(this::updateSearchIndexForPost);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostUpdated(PostUpdatedEvent event) {
-        updateSearchIndexForPost(event.getPost());
+        postRepository.findWithDetailsById(event.getPostId())
+                .ifPresent(this::updateSearchIndexForPost);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -51,22 +54,28 @@ public class SearchIndexService {
     // --- User 엔티티 변경 이벤트 처리 (예시) ---
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserUpdated(UserUpdatedEvent event) {
-        updateSearchIndexForUser(event.getUser());
+        System.out.println("userUpdate Event Dectected!");
+        userRepository.findById(event.getUserId())
+                .ifPresent(this::updateSearchIndexForUser);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserCreated(UserCreatedEvent event) {
-        updateSearchIndexForUser(event.getUser());
+        System.out.println("userCreate Event Dectected!");
+        userRepository.findById(event.getUserId())
+                .ifPresent(this::updateSearchIndexForUser);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserDeleted(UserDeletedEvent event) {
-        searchIndexRepository.deleteBySourceIdAndSourceType(event.getUser().getId(), "USER");
+        System.out.println("userDelete Event Dectected!");
+        searchIndexRepository.deleteBySourceIdAndSourceType(event.getUserId(), "USER");
     }
 
-    // --- SearchIndex 업데이트 로직 ---
-    @Transactional
+    // --- SearchIndex 업데이트 로직 ---// N+1 위험 개선필요
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateSearchIndexForPost(Post post) {
+        System.out.println("indexUpdateStart");
         // 기존 인덱스 조회 또는 새로 생성
         SearchIndex searchIndex = searchIndexRepository.findBySourceIdAndSourceType(post.getId(), "POST")
                 .orElseGet(SearchIndex::new);
@@ -100,10 +109,10 @@ public class SearchIndexService {
         searchIndex.setFullTextContent(fullText.trim());
 
         searchIndexRepository.save(searchIndex);
-
+        System.out.println("indexUpdateEnd");
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateSearchIndexForUser(User user) {
         SearchIndex searchIndex = searchIndexRepository.findBySourceIdAndSourceType(user.getId(), "USER")
                 .orElseGet(SearchIndex::new);

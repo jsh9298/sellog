@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,8 +97,9 @@ public class AuthService {
             newUser.setUserPrivate(userInfoPrivate);
             newUser.setUserProfile(userInfoProfile);
 
-            eventPublisher.publishEvent(new UserCreatedEvent(this, newUser));
-            return authRepository.save(newUser);
+            User savedUser = authRepository.save(newUser);
+            eventPublisher.publishEvent(new UserCreatedEvent(this, savedUser.getId()));
+            return savedUser;
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
@@ -163,6 +166,7 @@ public class AuthService {
 
     // 회원 탈퇴 처리
     @Transactional
+    @CacheEvict(value = "users", key = "#userId")
     public void deleteUser(String userId, String password, String accessToken, String refreshToken) {
         // 1. 사용자 ID로 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
@@ -180,7 +184,7 @@ public class AuthService {
 
         // 3. 현재 사용 중인 액세스 토큰 및 리프레시 토큰 무효화 (블랙리스트 추가)
         logoutUser(accessToken, refreshToken); // 로그아웃 로직 재활용
-        eventPublisher.publishEvent(new UserDeletedEvent(this, user));
+        eventPublisher.publishEvent(new UserDeletedEvent(this, user.getId()));
 
         // [개선] 물리적 삭제(Hard Delete) 대신 논리적 삭제(Soft Delete) 수행
         user.setAccountStatus(AccountStatus.DELETED); // 계정 상태를 '삭제됨'으로 변경
@@ -191,6 +195,13 @@ public class AuthService {
     @Transactional(readOnly = true)
     public Optional<User> findByUserId(String userId) {
         return authRepository.findByUserId(userId);
+    }
+
+    // UserProfile과 UserPrivate을 함께 조회하는 메서드 추가
+    @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#userId")
+    public Optional<User> findByUserIdWithDetails(String userId) {
+        return authRepository.findUserWithDetailsByUserId(userId);
     }
 
     // 액세스 토큰이 블랙리스트에 있는지 확인
@@ -249,6 +260,7 @@ public class AuthService {
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#userId")
     public void changePassword(String userId, String email, String password) {
         User user = authRepository.findByUserIdAndEmail(userId, email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));

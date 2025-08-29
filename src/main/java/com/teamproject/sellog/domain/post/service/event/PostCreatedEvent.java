@@ -1,18 +1,18 @@
 package com.teamproject.sellog.domain.post.service.event;
 
+import java.util.UUID;
+
 import org.springframework.context.ApplicationEvent;
 
-import com.teamproject.sellog.domain.post.model.entity.Post;
-
 public class PostCreatedEvent extends ApplicationEvent {
-    private final Post post;
+    private final UUID postId;
 
-    public PostCreatedEvent(Object source, Post post) {
+    public PostCreatedEvent(Object source, UUID postId) {
         super(source);
-        this.post = post;
+        this.postId = postId;
     }
 
-    public Post getPost() {
-        return post;
+    public UUID getPostId() {
+        return postId;
     }
 }

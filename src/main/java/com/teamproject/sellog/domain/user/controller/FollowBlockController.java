@@ -66,9 +66,9 @@ public class FollowBlockController {
         String userId = request.getAttribute("authenticatedUserId").toString();
         String otherId = otherUserIdRequest.getOtherId();
 
-        CursorPageResponse<FollowerResponse> response = followBlockService.addFollower(userId, otherId);
+        String message = followBlockService.addFollower(userId, otherId);
 
-        return ResponseEntity.ok(RestResponse.success("add success", response));
+        return ResponseEntity.ok(RestResponse.success(message, null));
 
     }
 
@@ -104,6 +104,30 @@ public class FollowBlockController {
         CursorPageResponse<BlockResponse> response = followBlockService.removeBlock(userId, otherId);
         return ResponseEntity.ok(RestResponse.success("remove success", response));
 
+    }
+
+    @PostMapping("/followers/accept/{requestId}")
+    @Operation(summary = "팔로우 요청 수락(+)", description = "받은 팔로우 요청을 수락합니다.")
+    public ResponseEntity<?> acceptFollowRequest(HttpServletRequest request, @PathVariable UUID requestId) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        followBlockService.acceptFollowRequest(userId, requestId);
+        return ResponseEntity.ok(RestResponse.success("팔로우 요청을 수락했습니다.", null));
+    }
+
+    @DeleteMapping("/followers/decline/{requestId}")
+    @Operation(summary = "팔로우 요청 거절(+)", description = "받은 팔로우 요청을 거절합니다.")
+    public ResponseEntity<?> declineFollowRequest(HttpServletRequest request, @PathVariable UUID requestId) {
+        // 본인에게 온 요청인지 확인하는 로직을 서비스에 추가할 수 있으나,
+        // 여기서는 요청 ID만으로 삭제 처리
+        followBlockService.declineFollowRequest(requestId);
+        return ResponseEntity.ok(RestResponse.success("팔로우 요청을 거절했습니다.", null));
+    }
+
+    // TODO: 팔로우 요청 목록을 보여주는 API 추가
+    @GetMapping("/follow-requests")
+    @Operation(summary = "팔로우 요청 목록(-)", description = "받은 팔로우 요청 목록을 보여줍니다.")
+    public ResponseEntity<?> listFollowRequests(HttpServletRequest request) {
+        return null;
     }
 
 }

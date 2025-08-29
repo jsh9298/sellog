@@ -1,19 +1,18 @@
 package com.teamproject.sellog.domain.auth.service.event;
 
+import java.util.UUID;
+
 import org.springframework.context.ApplicationEvent;
 
-import com.teamproject.sellog.domain.user.model.entity.user.User;
-
 public class UserDeletedEvent extends ApplicationEvent {
-    private final User user;
+    private final UUID userId;
 
-    public UserDeletedEvent(Object source, User user) {
+    public UserDeletedEvent(Object source, UUID userId) {
         super(source);
-        this.user = user;
-
+        this.userId = userId;
     }
 
-    public User getUser() {
-        return user;
+    public UUID getUserId() {
+        return userId;
     }
 }

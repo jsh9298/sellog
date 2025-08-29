@@ -26,6 +26,8 @@ public enum ErrorCode {
     INACTIVE_USER(HttpStatus.FORBIDDEN, "204", "해당 사용자는 비활성 상태입니다."),
     INVALID_F_LIST_CONTROL(HttpStatus.BAD_REQUEST, "205", "잘못된 팔로우/블락 요청입니다."),
     ACCOUNT_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "206", "해당아이디 소유자가 아닙니다."),
+    FOLLOW_REQUEST_ALREADY_EXISTS(HttpStatus.CONFLICT, "207", "이미 팔로우를 요청한 사용자입니다."),
+    FOLLOW_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "208", "존재하지 않는 팔로우 요청입니다."),
 
     // 게시글 관련
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "301", "해당 게시글을 찾을 수 없습니다."),

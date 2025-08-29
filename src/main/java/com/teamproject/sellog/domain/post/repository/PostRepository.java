@@ -2,10 +2,12 @@ package com.teamproject.sellog.domain.post.repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,4 +34,7 @@ public interface PostRepository extends JpaRepository<Post, UUID>, JpaSpecificat
                         @Param("lastCreateAt") Timestamp lastCreateAt,
                         @Param("lastId") UUID lastId,
                         Pageable pageable);
+
+        @EntityGraph(attributePaths = { "author", "author.userProfile", "hashBoard", "hashBoard.tag" })
+        Optional<Post> findWithDetailsById(UUID postId);
 }

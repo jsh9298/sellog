@@ -18,10 +18,13 @@ import com.teamproject.sellog.domain.user.mapper.FollowBlockMapper;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
 import com.teamproject.sellog.domain.user.model.entity.friend.Block;
+import com.teamproject.sellog.domain.user.model.entity.friend.FollowRequest;
 import com.teamproject.sellog.domain.user.model.entity.friend.Follow;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
+import com.teamproject.sellog.common.accountsUtils.CheckStatus;
 import com.teamproject.sellog.domain.user.repository.BlockRepository;
 import com.teamproject.sellog.domain.user.repository.FollowRepository;
+import com.teamproject.sellog.domain.user.repository.FollowRequestRepository;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 
 @Service
@@ -30,13 +33,16 @@ public class FollowBlockService {
     private final FollowBlockMapper followBlockMapper;
     private final FollowRepository followRepository;
     private final BlockRepository blockRepository;
+    private final FollowRequestRepository followRequestRepository;
 
     public FollowBlockService(final UserRepository userRepository, final FollowBlockMapper followBlockMapper,
-            final FollowRepository followRepository, final BlockRepository blockRepository) {
+            final FollowRepository followRepository, final BlockRepository blockRepository,
+            final FollowRequestRepository followRequestRepository) {
         this.userRepository = userRepository;
         this.followBlockMapper = followBlockMapper;
         this.followRepository = followRepository;
         this.blockRepository = blockRepository;
+        this.followRequestRepository = followRequestRepository;
     }
 
     @Transactional(readOnly = true)
@@ -93,19 +99,35 @@ public class FollowBlockService {
     }
 
     @Transactional
-    public CursorPageResponse<FollowerResponse> addFollower(String userId, String otherId) {
+    public String addFollower(String userId, String otherId) {
         User user = findUser(userId);
         User other = findUser(otherId);
-        boolean added = user.addFollowing(other);
-        if (!added) {
-            throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
+
+        if (CheckStatus.isPrivate(other)) {
+            // 대상이 비공개 계정이면 팔로우 요청 생성
+            if (followRequestRepository.existsByRequesterAndTarget(user, other)) {
+                throw new BusinessException(ErrorCode.FOLLOW_REQUEST_ALREADY_EXISTS);
+            }
+            FollowRequest request = new FollowRequest();
+            request.setRequester(user);
+            request.setTarget(other);
+            followRequestRepository.save(request);
+            return "팔로우 요청을 보냈습니다.";
+        } else {
+            // 대상이 공개 계정이면 즉시 팔로우
+            User userWithRelations = findUserWithRelations(userId);
+            if (!userWithRelations.addFollowing(other)) {
+                throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
+            }
+            user.getUserProfile().setFollowingCount(user.getUserProfile().getFollowingCount() + 1);
+            other.getUserProfile().setFollowerCount(other.getUserProfile().getFollowerCount() + 1);
+            return "팔로우를 시작했습니다.";
         }
-        return listFollower(userId, null, null, 10);
     }
 
     @Transactional
     public CursorPageResponse<BlockResponse> addBlock(String userId, String otherId) {
-        User user = findUser(userId);
+        User user = findUserWithRelations(userId);
         User other = findUser(otherId);
         boolean added = user.addBlocking(other);
         if (!added) {
@@ -116,18 +138,22 @@ public class FollowBlockService {
 
     @Transactional
     public CursorPageResponse<FollowerResponse> removeFollower(String userId, String otherId) {
-        User user = findUser(userId);
+        User user = findUserWithRelations(userId);
         User other = findUser(otherId);
         boolean removed = user.removeFollowing(other);
         if (!removed) {
             throw new BusinessException(ErrorCode.INVALID_F_LIST_CONTROL);
+        } else {
+            // 언팔로우 성공 시 카운터 업데이트
+            user.getUserProfile().setFollowingCount(Math.max(0, user.getUserProfile().getFollowingCount() - 1));
+            other.getUserProfile().setFollowerCount(Math.max(0, other.getUserProfile().getFollowerCount() - 1));
         }
         return listFollower(userId, null, null, 10);
     }
 
     @Transactional
     public CursorPageResponse<BlockResponse> removeBlock(String userId, String otherId) {
-        User user = findUser(userId);
+        User user = findUserWithRelations(userId);
         User other = findUser(otherId);
         boolean removed = user.removeBlocking(other);
         if (!removed) {
@@ -136,8 +162,46 @@ public class FollowBlockService {
         return listBlock(userId, null, null, 10);
     }
 
+    @Transactional
+    public void acceptFollowRequest(String userId, UUID requestId) {
+        FollowRequest request = followRequestRepository.findById(requestId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_REQUEST_NOT_FOUND));
+
+        // 요청을 수락하는 사용자가 요청의 대상이 맞는지 확인
+        if (!request.getTarget().getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        User requester = request.getRequester();
+        User target = request.getTarget();
+
+        // Follow 엔티티 생성
+        Follow newFollow = new Follow();
+        newFollow.setFollower(requester);
+        newFollow.setFollowed(target);
+        followRepository.save(newFollow);
+
+        // 카운터 업데이트
+        requester.getUserProfile().setFollowingCount(requester.getUserProfile().getFollowingCount() + 1);
+        target.getUserProfile().setFollowerCount(target.getUserProfile().getFollowerCount() + 1);
+
+        // 처리된 요청 삭제
+        followRequestRepository.delete(request);
+    }
+
+    @Transactional
+    public void declineFollowRequest(UUID requestId) {
+        // 요청 존재 여부만 확인하고 삭제
+        followRequestRepository.deleteById(requestId);
+    }
+
     private User findUser(String userId) {
         return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    private User findUserWithRelations(String userId) {
+        return userRepository.findByUserIdWithRelations(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 

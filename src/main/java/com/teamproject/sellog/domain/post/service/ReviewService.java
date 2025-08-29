@@ -100,7 +100,7 @@ public class ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
-        eventPublisher.publishEvent(new ReviewCreatedEvent(this, savedReview));
+        eventPublisher.publishEvent(new ReviewCreatedEvent(this, savedReview.getReviewId()));
     }
 
     @Transactional
@@ -115,7 +115,7 @@ public class ReviewService {
         review.setContent(dto.getContent());
         review.setScore(dto.getRating());
 
-        eventPublisher.publishEvent(new ReviewUpdatedEvent(this, review));
+        eventPublisher.publishEvent(new ReviewUpdatedEvent(this, review.getReviewId()));
     }
 
     @Transactional
@@ -126,8 +126,7 @@ public class ReviewService {
         if (!review.getAuthor().getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.REVIEW_OWNER_MISMATCH);
         }
-
+        eventPublisher.publishEvent(new ReviewDeletedEvent(this, review.getReviewId()));
         reviewRepository.delete(review); // 리뷰는 자식 엔티티가 없으므로 물리적 삭제도 가능
-        eventPublisher.publishEvent(new ReviewDeletedEvent(this, review));
     }
 }

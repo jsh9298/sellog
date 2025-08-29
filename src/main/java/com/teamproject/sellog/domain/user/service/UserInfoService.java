@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,8 +59,6 @@ public class UserInfoService {
         if (CheckStatus.checkSelf(userId, selfId)) { // 본인꺼 탐색하는지 확인
             userProfile = user.getUserProfile();
             userPrivate = user.getUserPrivate();
-            userContentCount = userRepository.findContentCountByUserId(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         } else {
             User self = userRepository.findUserWithProfileAndPrivateByUserId(selfId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND)); // 본인꺼 보는게 아니니, 대상 유저데이터 탐색
@@ -69,8 +68,6 @@ public class UserInfoService {
                 if (CheckStatus.isFollowing(user, self)) {
                     userProfile = user.getUserProfile();
                     userPrivate = user.getUserPrivate();
-                    userContentCount = userRepository.findContentCountByUserId(userId)
-                            .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
                 } else {
                     message = "이 계정은 비공개 상태입니다.";
                 }
@@ -79,18 +76,20 @@ public class UserInfoService {
             } else { // 차단,비공개,비활성도 아니면 그냥 보내기.
                 userProfile = user.getUserProfile();
                 userPrivate = user.getUserPrivate();
-                userContentCount = userRepository.findContentCountByUserId(userId)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
             }
         }
-        if (userProfile != null && userPrivate != null && userContentCount != null) {
+        if (userProfile != null && userPrivate != null) {
             CursorPageResponse<SimplePostList> postList = getPostLists(user, type, lastCreateAt, lastId, limit);
+            // 비정규화된 필드에서 UserContentCount DTO 생성
+            userContentCount = new UserContentCount(userProfile.getPostCount(), userProfile.getProductCount(),
+                    userProfile.getFollowingCount(), userProfile.getFollowerCount());
             return userInfoMapper.EntityToResponse(userProfile, userPrivate, user, userContentCount, postList);
         }
         return UserProfileResponse.builder().profileMessage(message).build();
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#userId")
     public void editUserProfile(String userId, UserProfileRequest userProfileRequest) {
         User user = userRepository.findUserWithProfileAndPrivateByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -99,7 +98,7 @@ public class UserInfoService {
         if (user.getAccountStatus() == AccountStatus.STAY) {
             user.setAccountStatus(AccountStatus.ACTIVE);
         }
-        eventPublisher.publishEvent(new UserUpdatedEvent(this, user));
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, user.getId()));
         userInfoMapper.updatePrivateFromRequest(userProfileRequest, userPrivate);
         userInfoMapper.updateProfileFromRequest(userProfileRequest, userProfile);
         userInfoMapper.updateUserFromRequest(userProfileRequest, user);
@@ -129,8 +128,9 @@ public class UserInfoService {
             userProfile = user.getUserProfile();
         }
 
-        UserContentCount userContentCount = userRepository.findContentCountByUserId(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        UserContentCount userContentCount = new UserContentCount(userProfile.getPostCount(),
+                userProfile.getProductCount(),
+                userProfile.getFollowingCount(), userProfile.getFollowerCount());
         CursorPageResponse<SimplePostList> postList = getPostLists(user, type, lastCreateAt, lastId, limit);
         return userInfoMapper.EntityToResponse(userProfile, userContentCount, postList);
     }

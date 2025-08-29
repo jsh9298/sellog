@@ -26,6 +26,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "WHERE u.userId = :userId")
     Optional<UserContentCount> findContentCountByUserId(String userId);
 
+    @EntityGraph(attributePaths = { "following", "blocking" })
+    Optional<User> findByUserIdWithRelations(String userId);
+
     Optional<User> findByUserId(String userId);
 
     @EntityGraph(attributePaths = { "following", "following.followed", "following.followed.userProfile" })

@@ -72,7 +72,7 @@ public class JwtAuthFilter implements Filter {
                         return; // 요청 처리 중단
                     }
                     String userId = jwtProvider.getClaims(token).get("userId", String.class);
-                    Optional<User> userOptional = authService.findByUserId(userId);
+                    Optional<User> userOptional = authService.findByUserIdWithDetails(userId);
                     if (userOptional.isPresent()) {
                         request.setAttribute("authenticatedUserId", userOptional.get().getUserId());
                         request.setAttribute("authenticatedUser", userOptional.get());
