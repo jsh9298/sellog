@@ -65,7 +65,7 @@ public class Post {
     @Column(name = "location_longitude", nullable = true)
     private Double longitude;
 
-    @Column(name = "location_point", nullable = true)
+    @Column(name = "location_point", columnDefinition = "POINT SRID 4326", nullable = true)
     private Point locationPoint;
 
     @Column(name = "content", nullable = false)

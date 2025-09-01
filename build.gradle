@@ -61,6 +61,13 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
 
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+
+	// JTS (Java Topology Suite) - 공간 데이터 모델
+    // implementation 'org.locationtech.jts:jts-core:1.19.0'
+
+ 	// Hibernate Spatial - JPA에서 공간 데이터 타입 및 함수 지원
+    // implementation 'org.hibernate.orm:hibernate-spatial:6.2.7.Final' 
 }
 
 dependencyManagement {

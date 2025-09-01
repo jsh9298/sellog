@@ -29,23 +29,23 @@ public class GeometryUtil {
         return EARTH_RADIUS * b * 1000; // m
     }
 
-    public static Double toRadian(Double coordinate) { // 테스트 후 private으로
+    private static Double toRadian(Double coordinate) {
         return coordinate * Math.PI / 180.0;
     }
 
-    public static Double toDegree(Double coordinate) {// 테스트 후 private으로
+    private static Double toDegree(Double coordinate) {
         return coordinate * 180.0 / Math.PI;
     }
 
-    public static Double sin(Double coordinate) {// 테스트 후 private으로
+    private static Double sin(Double coordinate) {
         return Math.sin(coordinate);
     }
 
-    public static Double cos(Double coordinate) {// 테스트 후 private으로
+    private static Double cos(Double coordinate) {
         return Math.cos(coordinate);
     }
 
-    public static Double normalizeLongitude(Double longitude) {// 테스트 후 private으로
+    private static Double normalizeLongitude(Double longitude) {
         return (longitude + 540) % 360 - 180;
     }
 }
