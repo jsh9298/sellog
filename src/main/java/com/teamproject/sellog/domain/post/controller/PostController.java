@@ -109,4 +109,13 @@ public class PostController {
         return ResponseEntity.ok(RestResponse.success("toggle dislike success", null));
 
     }
+
+    @GetMapping("/post/test")
+    public ResponseEntity<?> getMethodName(@RequestParam Double latitude, @RequestParam Double longitude,
+            @RequestParam double distanceInMeters) {
+
+        return ResponseEntity
+                .ok(RestResponse.success("test", postService.findPostsNearby(latitude, longitude, distanceInMeters)));
+    }
+
 }

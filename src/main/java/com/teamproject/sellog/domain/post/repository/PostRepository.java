@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -37,4 +38,8 @@ public interface PostRepository extends JpaRepository<Post, UUID>, JpaSpecificat
 
         @EntityGraph(attributePaths = { "author", "author.userProfile", "hashBoard", "hashBoard.tag" })
         Optional<Post> findWithDetailsById(UUID postId);
+
+        @Query(value = "SELECT * FROM feed p WHERE ST_Distance_Sphere(p.location_point, POINT(:longitude, :latitude)) <= :distance", countQuery = "SELECT count(*) FROM feed p WHERE ST_Distance_Sphere(p.location_point, POINT(:longitude, :latitude)) <= :distance", nativeQuery = true)
+        Page<Post> findPostsWithinDistance(@Param("longitude") double longitude, @Param("latitude") double latitude,
+                        @Param("distance") double distance, Pageable pageable);
 }

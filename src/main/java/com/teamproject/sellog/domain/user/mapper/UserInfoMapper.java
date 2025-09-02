@@ -37,9 +37,17 @@ public interface UserInfoMapper {
         @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
         void updateUserFromRequest(UserProfileRequest dto, @MappingTarget User user);
 
+        @Mapping(source = "userContentCount.postCount", target = "postCount")
+        @Mapping(source = "userContentCount.productCount", target = "productCount")
+        @Mapping(source = "userContentCount.followCount", target = "followCount")
+        @Mapping(source = "userContentCount.followedCount", target = "followedCount")
         UserProfileResponse EntityToResponse(UserProfile userprofile, UserPrivate userprivate, User user,
                         UserContentCount userContentCount, CursorPageResponse<SimplePostList> postLists);
 
+        @Mapping(source = "userContentCount.postCount", target = "postCount")
+        @Mapping(source = "userContentCount.productCount", target = "productCount")
+        @Mapping(source = "userContentCount.followCount", target = "followCount")
+        @Mapping(source = "userContentCount.followedCount", target = "followedCount")
         UserPreviewResponse EntityToResponse(UserProfile userprofile, UserContentCount userContentCount,
                         CursorPageResponse<SimplePostList> postLists);
 }

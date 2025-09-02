@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -281,5 +282,20 @@ public class PostService {
 
         // CursorPageResponse에 nextGroupId 필드가 있지만 Post 목록 조회에는 필요 없으므로 null 전달
         return new CursorPageResponse<>(postDto, hasNext, null, nextCreateAt, nextId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Post> findPostsNearby(Double latitude,
+            Double longitude, double distanceInMeters) {
+        Pageable pageable = PageRequest.of(0, 10);
+        if (latitude == null || longitude == null) {
+            return Page.empty(pageable);
+        }
+
+        return postRepository.findPostsWithinDistance(
+                longitude,
+                latitude,
+                distanceInMeters,
+                pageable);
     }
 }

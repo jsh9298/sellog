@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.teamproject'
-version = 'dev0.0.4-SNAPSHOT'
+version = 'dev0.0.4-SNAPSHOTtemp'
 
 java {
 	toolchain {

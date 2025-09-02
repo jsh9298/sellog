@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.teamproject.sellog.domain.user.model.dto.UserContentCount;
@@ -27,7 +28,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<UserContentCount> findContentCountByUserId(String userId);
 
     @EntityGraph(attributePaths = { "following", "blocking" })
-    Optional<User> findByUserIdWithRelations(String userId);
+    @Query("select u from User u where u.userId = :userId")
+    Optional<User> findByUserIdWithRelations(@Param("userId") String userId);
 
     Optional<User> findByUserId(String userId);
 
