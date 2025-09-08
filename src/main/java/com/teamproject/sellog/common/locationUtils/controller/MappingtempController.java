@@ -14,6 +14,7 @@ import com.teamproject.sellog.common.locationUtils.repository.SpatialRefSysRepos
 import lombok.RequiredArgsConstructor;
 
 import com.teamproject.sellog.common.locationUtils.DataMapping.LsctLawdcd;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
@@ -32,21 +33,21 @@ public class MappingtempController {
 
     @GetMapping("/lsctLawdcd")
     public List<LsctLawdcd> getAllLsctLawdcd() {
-        return lsctLawdcdRepository.findAll();
+        return lsctLawdcdRepository.findAll(PageRequest.of(0, 10)).getContent();
     }
 
     @GetMapping("/spatialRefSys")
     public List<SpatialRefSys> getAllSpatialRefSys() {
-        return spatialRefSysRepository.findAll();
+        return spatialRefSysRepository.findAll(PageRequest.of(0, 10)).getContent();
     }
 
     @GetMapping("/geometryColumns")
     public List<GeometryColumns> getAllGeometryColumns() {
-        return geometryColumnRepository.findAll();
+        return geometryColumnRepository.findAll(PageRequest.of(0, 10)).getContent();
     }
 
     @GetMapping("/lsmdAdmSectUmd")
     public List<LsmdAdmSectUmd> getAllLsmdAdmSectUmd() {
-        return lsmdAdmSectUmdRepository.findAll();
+        return lsmdAdmSectUmdRepository.findAll(PageRequest.of(0, 10)).getContent();
     }
 }

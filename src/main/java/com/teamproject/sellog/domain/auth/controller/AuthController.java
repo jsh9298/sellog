@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.auth.controller;
 
 import com.teamproject.sellog.common.accountsUtils.TokenExtractor;
+import com.teamproject.sellog.common.emailUtils.EmailService;
 import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
@@ -28,6 +29,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/auth")
@@ -39,9 +42,13 @@ public class AuthController {
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
     // @RequiredArgsConstructor는 @Value에 해당하는 값을 인식못함. 직접 주입해줘야함.
 
+    private final EmailService emailService;
+
     public AuthController(final AuthService authService,
+            final EmailService emailService,
             @Value("${jwt.refresh-token-expiration-ms}") final long refreshTokenValidityInMilliseconds) {
         this.authService = authService;
+        this.emailService = emailService;
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
@@ -219,6 +226,12 @@ public class AuthController {
                 userPasswordDto.getPassword());
         return ResponseEntity.ok(RestResponse.success("Password change successfully", null));
 
+    }
+
+    @GetMapping("/email/test")
+    public String getMethodName(@RequestParam String param) {
+        emailService.sendSimpleEmail(param, "test", "testSend");
+        return "success";
     }
 
 }
