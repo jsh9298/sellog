@@ -17,6 +17,7 @@ import com.teamproject.sellog.domain.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -230,7 +231,7 @@ public class AuthController {
 
     @GetMapping("/email/test")
     public String getMethodName(@RequestParam String param) {
-        emailService.sendSimpleEmail(param, "test", "testSend");
+
         return "success";
     }
 

@@ -1,51 +1,68 @@
 package com.teamproject.sellog.common.emailUtils;
 
-import org.springframework.mail.SimpleMailMessage;
+import java.io.IOException;
+import java.util.Base64;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
+    private final TemplateEngine templateEngine;
 
-    public EmailService(JavaMailSender javaMailSender) {
+    public EmailService(JavaMailSender javaMailSender, TemplateEngine templateEngine) {
         this.javaMailSender = javaMailSender;
+        this.templateEngine = templateEngine;
+
     }
 
-    /**
-     * 단순 텍스트 이메일 발송
-     * 
-     * @param to      수신자 이메일 주소
-     * @param subject 이메일 제목
-     * @param text    이메일 본문 (일반 텍스트)
-     */
-    public void sendSimpleEmail(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        // setFrom(): 반드시 Email Communication Services에 설정된 도메인의 유효한 발신자 주소 사용
-        // 예: "donotreply@xxxx.azurecomm.net" 또는 "no-reply@yourdomain.com"
-        message.setFrom("DoNotReply@c63138e7-6e8c-4ff6-a57f-a848d14d2b13.azurecomm.net");
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        javaMailSender.send(message);
-        System.out.println("이메일이 성공적으로 " + to + " (으)로 전송되었습니다.");
+    @Async
+    public void sendHtmlEmail(EmailSendDto mailHtmlSendDto) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            Context context = new Context();
+            context.setVariable("subject", mailHtmlSendDto.getSubject());
+            context.setVariable("message", mailHtmlSendDto.getContent());
+            // if (mailHtmlSendDto.getTarget().equals("user")) {
+            // context.setVariable("userType", "일반 사용자");
+            // } else if (mailHtmlSendDto.getTarget().equals("admin")) {
+            // context.setVariable("userType", "관리자");
+            // }
+            String base64Image = getBase64EncodedImage("static/images/logo.png");
+            context.setVariable("logoImage", base64Image);
+
+            String htmlContent = templateEngine.process("email-template", context);
+            helper.setTo(mailHtmlSendDto.getEmailAddr());
+            helper.setSubject(mailHtmlSendDto.getSubject());
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+            System.out.println("Thymeleaf 템플릿 이메일 전송 성공!");
+        } catch (MessagingException e) {
+            System.out.println("[-] Thymeleaf 템플릿 이메일 전송 중 오류 발생: " + e.getMessage());
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    /**
-     * HTML 이메일 발송 (인증/프로모션/알림 등에서 유용)
-     * HTML 템플릿 사용을 위해 Thymeleaf, FreeMarker 등과 연동하여 사용 가능합니다.
-     */
-    // @Async // 비동기 발송을 위해 추가 (비동기 설정 필요)
-    // public void sendHtmlEmail(String to, String subject, String htmlContent)
-    // throws MessagingException {
-    // MimeMessage message = javaMailSender.createMimeMessage();
-    // MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-    // helper.setFrom("발신자_이메일_주소");
-    // helper.setTo(to);
-    // helper.setSubject(subject);
-    // helper.setText(htmlContent, true); // true = HTML content
-    // javaMailSender.send(message);
-    // System.out.println("HTML 이메일이 성공적으로 " + to + " (으)로 전송되었습니다.");
-    // }
+    // 이미지를 Base64로 인코딩하는 메서드
+    private String getBase64EncodedImage(String imagePath) throws IOException {
+        Resource resource = new ClassPathResource(imagePath);
+        byte[] bytes = StreamUtils.copyToByteArray(resource.getInputStream());
+        return Base64.getEncoder().encodeToString(bytes);
+    }
 }

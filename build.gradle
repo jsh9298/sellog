@@ -63,6 +63,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	// JTS (Java Topology Suite) - 공간 데이터 모델
     // implementation 'org.locationtech.jts:jts-core:1.19.0'
 
