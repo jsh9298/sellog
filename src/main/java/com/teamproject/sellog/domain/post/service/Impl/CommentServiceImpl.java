@@ -23,13 +23,14 @@ import com.teamproject.sellog.domain.post.model.entity.Comment;
 import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.post.repository.CommentRepository;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
+import com.teamproject.sellog.domain.post.service.CommentService;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 import com.teamproject.sellog.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class CommentServiceImpl {
+public class CommentServiceImpl implements CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;

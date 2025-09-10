@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.entity.user;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -30,7 +31,9 @@ import com.teamproject.sellog.common.locationUtils.Location;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user_private")
-public class UserPrivate {
+public class UserPrivate implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @Column(name = "id", nullable = false)

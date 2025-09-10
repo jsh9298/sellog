@@ -1,5 +1,6 @@
 package com.teamproject.sellog.domain.user.model.entity.user;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -22,7 +23,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "user_profile")
-public class UserProfile {
+public class UserProfile implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @Column(name = "id", nullable = false)

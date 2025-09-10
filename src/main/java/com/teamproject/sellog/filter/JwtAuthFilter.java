@@ -87,6 +87,7 @@ public class JwtAuthFilter implements Filter {
                 }
             } catch (Exception e) {
                 System.err.println("JWT validation failed: " + e.getMessage());
+                e.printStackTrace();
                 request.setAttribute("jwtError", e.getMessage());
             }
         }

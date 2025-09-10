@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.auth.controller;
 
 import com.teamproject.sellog.common.accountsUtils.TokenExtractor;
+import com.teamproject.sellog.common.emailUtils.EmailSendDto;
 import com.teamproject.sellog.common.emailUtils.EmailService;
 import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
@@ -231,7 +232,8 @@ public class AuthController {
 
     @GetMapping("/email/test")
     public String getMethodName(@RequestParam String param) {
-
+        EmailSendDto email = new EmailSendDto(param, "탬플릿 이메일 테스트", "제목테스트");
+        emailService.sendEmail(email);
         return "success";
     }
 
