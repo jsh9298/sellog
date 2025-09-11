@@ -4,7 +4,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.lang.NonNull;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -48,6 +50,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         public ResponseEntity<RestResponse<?>> handleIllegalArgumentException(IllegalArgumentException e) {
                 return new ResponseEntity<>(
                                 RestResponse.error(ErrorCode.INVALID_PARAMETER, e.getMessage()), // COMMON-001 사용
+                                HttpStatus.BAD_REQUEST);
+        }
+
+        // 4. 지원하지 않는 HTTP 메서드 요청 시 예외 처리
+        @Override
+        protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
+                        @NonNull HttpRequestMethodNotSupportedException ex, @NonNull HttpHeaders headers,
+                        @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+                final String message = String.format("%s 메서드는 지원하지 않습니다. %s 메서드를 사용해주세요.",
+                                ex.getMethod(), ex.getSupportedHttpMethods());
+                return new ResponseEntity<>(
+                                RestResponse.error(ErrorCode.METHOD_NOT_ALLOWED, message),
+                                HttpStatus.METHOD_NOT_ALLOWED);
+        }
+
+        // 5. 파라미터 타입 불일치 예외 처리
+        @ExceptionHandler(TypeMismatchException.class)
+        public ResponseEntity<RestResponse<?>> handleTypeMismatchException(TypeMismatchException e) {
+                String message = String.format("파라미터 '%s'에 잘못된 값 '%s'이(가) 입력되었습니다. 올바른 타입: '%s'",
+                                e.getPropertyName(), e.getValue(), e.getRequiredType().getSimpleName());
+                return new ResponseEntity<>(RestResponse.error(ErrorCode.INVALID_TYPE_VALUE, message),
                                 HttpStatus.BAD_REQUEST);
         }
 

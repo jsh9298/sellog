@@ -9,6 +9,8 @@ import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.auth.model.dto.request.CheckIdDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserDeleteDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserFindIdDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpRequestDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpVerifyDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserLoginDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserPasswordDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserRegisterDto;
@@ -19,6 +21,7 @@ import com.teamproject.sellog.domain.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -57,12 +60,8 @@ public class AuthController {
     @PostMapping("/checkId")
     @Operation(summary = "아이디 중복 체크(*)", description = "아이디 중복 체크")
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
-        if (!authService.checkId(checkIdDto.getUserId())) {
-            return ResponseEntity.ok(RestResponse.success("You can use this Id", null));
-        } else {
-            throw new BusinessException(ErrorCode.DUPLICATE_USERNAME);
-        }
-
+        authService.checkId(checkIdDto.getUserId());
+        return ResponseEntity.ok(RestResponse.success("You can use this Id", null));
     }
 
     @PostMapping("/register")
@@ -111,10 +110,6 @@ public class AuthController {
                     break;
                 }
             }
-        }
-
-        if (accessToken == null && (refreshToken == null || refreshToken.isEmpty())) {
-            throw new BusinessException(ErrorCode.TOKEN_NOT_PROVIDED);
         }
 
         authService.logoutUser(accessToken, refreshToken);
@@ -216,18 +211,27 @@ public class AuthController {
         return ResponseEntity.ok(RestResponse.success("Find user's id successfully", userId));
     }
 
-    // 비밀번호 변경 엔드포인트, 로그인 전 비밀번호 변경을 위해 존재하기 때문에, email과 변경할 password를 받음.
+    @PostMapping("/password/send")
+    @Operation(summary = "비밀번호 재설정 OTP 발송(+)", description = "아이디와 이메일이 일치하는 사용자에게 OTP를 발송합니다.")
+    public ResponseEntity<?> sendOtpForPasswordReset(@Valid @RequestBody UserOtpRequestDto dto) {
+        authService.sendOtpForPasswordReset(dto);
+        return ResponseEntity.ok(RestResponse.success("OTP가 이메일로 발송되었습니다.", null));
+    }
 
-    /* 이메일 인증과 연동되어야함. */
+    @PostMapping("/password/verify")
+    @Operation(summary = "비밀번호 재설정 OTP 검증(+)", description = "발송된 OTP를 검증합니다. 성공 시 비밀번호 변경이 가능해집니다.")
+    public ResponseEntity<?> verifyOtp(@Valid @RequestBody UserOtpVerifyDto dto) {
+        authService.verifyOtp(dto);
+        return ResponseEntity.ok(RestResponse.success("OTP 인증에 성공했습니다.", null));
+    }
 
     @PatchMapping("/password")
-    @Operation(summary = "회원비밀번호 찾기(*)", description = "찾기라 쓰고, 변경이라 읽는다. 이메일 인증은 언제 추가하지..")
-    public ResponseEntity<?> changePassword(@RequestBody UserPasswordDto userPasswordDto) {
-
-        authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getEmail(),
-                userPasswordDto.getPassword());
+    @Operation(summary = "회원비밀번호 변경(+)", description = "OTP 인증 후 새로운 비밀번호로 변경합니다.")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody UserPasswordDto userPasswordDto) {
+        // OTP 인증이 성공했는지 확인하는 로직이 서비스 내부에 포함되어야 합니다.
+        // (예: Redis에 인증 성공 플래그 저장 후 확인)
+        authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getPassword());
         return ResponseEntity.ok(RestResponse.success("Password change successfully", null));
-
     }
 
     @GetMapping("/email/test")

@@ -77,8 +77,6 @@ public class SearchServiceImpl implements SearchService {
                 }
             }
 
-            // TODO: 향후 위치 기반 검색 필터 추가, 근데 그전에 sql 파일 깨진거부터 교체를 해야한다는 슬픈 사실..
-
             return cb.and(predicates.toArray(new Predicate[0]));
         }, pageable);
     }

@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import com.teamproject.sellog.common.emailUtils.EmailSendDto;
+import com.teamproject.sellog.common.emailUtils.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpRequestDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpVerifyDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserLoginDto;
 import com.teamproject.sellog.domain.auth.model.dto.request.UserRegisterDto;
 import com.teamproject.sellog.domain.auth.model.dto.response.UserLoginResponse;
@@ -45,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthRepository authRepository;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
+    private final EmailService emailService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -57,11 +62,13 @@ public class AuthServiceImpl implements AuthService {
     private String defaultProfileThumbUrl;
 
     public AuthServiceImpl(AuthRepository authRepository, JwtProvider jwtProvider, RedisService redisService,
+            EmailService emailService,
             @Value("${jwt.refresh-token-expiration-ms}") long refreshTokenValidityInMilliseconds,
             ApplicationEventPublisher eventPublisher) {
         this.authRepository = authRepository;
         this.jwtProvider = jwtProvider;
         this.redisService = redisService;
+        this.emailService = emailService;
 
         this.eventPublisher = eventPublisher;
 
@@ -70,6 +77,10 @@ public class AuthServiceImpl implements AuthService {
 
     private static final String ACCESS_TOKEN_BLACKLIST_PREFIX = "accessToken:blacklist:";
     private static final String REFRESH_TOKEN_PREFIX = "refreshToken:";
+    private static final String OTP_PREFIX = "otp:";
+    private static final long OTP_EXPIRATION_MINUTES = 5;
+    private static final String OTP_VERIFIED_PREFIX = "otp:verified:";
+    private static final long OTP_VERIFIED_EXPIRATION_MINUTES = 10;
 
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
@@ -263,18 +274,56 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @CacheEvict(value = "users", key = "#userId")
-    public void changePassword(String userId, String email, String password) {
-        User user = authRepository.findByUserIdAndEmail(userId, email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        if (user != null) {
-            String salt = user.getPasswordSalt();
-            String newPassword = PasswordHasher.hashPassword(password, salt);
-            user.setPasswordHash(newPassword);
+    public void changePassword(String userId, String password) {
+        // 1. OTP 인증이 완료되었는지 확인
+        String verifiedKey = OTP_VERIFIED_PREFIX + userId;
+        if (!redisService.hasKey(verifiedKey)) {
+            throw new BusinessException(ErrorCode.OTP_NOT_VERIFIED);
         }
+
+        // 2. 사용자 조회 및 비밀번호 변경
+        User user = authRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        String salt = user.getPasswordSalt();
+        String newPasswordHash = PasswordHasher.hashPassword(password, salt);
+        user.setPasswordHash(newPasswordHash);
+
+        // 3. 인증 완료 플래그 삭제 (재사용 방지)
+        redisService.deleteValue(verifiedKey);
     }
 
     @Transactional(readOnly = true)
     public boolean checkId(String userId) {
         return authRepository.existsByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public void sendOtpForPasswordReset(UserOtpRequestDto dto) {
+        User user = authRepository.findByUserId(dto.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.getEmail().equals(dto.getEmail())) {
+            throw new BusinessException(ErrorCode.USER_EMAIL_MISMATCH);
+        }
+
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+        redisService.setValue(OTP_PREFIX + dto.getUserId(), otp, OTP_EXPIRATION_MINUTES, TimeUnit.MINUTES);
+
+        EmailSendDto emailDto = new EmailSendDto(dto.getEmail(), "[Sellog] 비밀번호 재설정 인증번호", "인증번호: " + otp);
+        emailService.sendEmail(emailDto);
+    }
+
+    @Override
+    public boolean verifyOtp(UserOtpVerifyDto dto) {
+        String storedOtp = (String) redisService.getValue(OTP_PREFIX + dto.getUserId());
+        if (storedOtp == null || !storedOtp.equals(dto.getOtp())) {
+            throw new BusinessException(ErrorCode.OTP_VERIFICATION_FAILED);
+        }
+        redisService.setValue(OTP_VERIFIED_PREFIX + dto.getUserId(), "true", OTP_VERIFIED_EXPIRATION_MINUTES,
+                TimeUnit.MINUTES);
+        redisService.deleteValue(OTP_PREFIX + dto.getUserId()); // 사용된 OTP 삭제
+        return true;
     }
 }

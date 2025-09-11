@@ -1,5 +1,7 @@
 package com.teamproject.sellog.domain.auth.service;
 
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpRequestDto;
+import com.teamproject.sellog.domain.auth.model.dto.request.UserOtpVerifyDto;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -24,7 +26,11 @@ public interface AuthService {
 
     String findUserId(String email);
 
-    void changePassword(String userId, String email, String password);
+    void sendOtpForPasswordReset(UserOtpRequestDto dto);
+
+    boolean verifyOtp(UserOtpVerifyDto dto);
+
+    void changePassword(String userId, String password);
 
     boolean checkId(String userId);
 
