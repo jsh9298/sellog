@@ -43,11 +43,16 @@ public class SearchServiceImpl implements SearchService {
 
             // 키워드 검색 (MySQL Full-Text Search)
             if (request.getKeyword() != null && !request.getKeyword().isBlank()) {
-                // cb.function을 사용하여 네이티브 함수 호출
-                predicates.add(cb.greaterThan(
-                        cb.function("match", Double.class, root.get("fullTextContent"),
-                                cb.literal(request.getKeyword() + "* IN BOOLEAN MODE")),
-                        0.0));
+                String fullTextSearchKeyword = request.getKeyword() + "*";
+                List<UUID> matchedSearchIndexIds = searchIndexRepository
+                        .findIdsByFullTextSearch(fullTextSearchKeyword);
+
+                if (!matchedSearchIndexIds.isEmpty()) {
+                    predicates.add(root.get("id").in(matchedSearchIndexIds));
+                } else {
+                    predicates.add(cb.isFalse(cb.literal(true)));
+                }
+
             }
 
             // 검색 대상 타입 필터링 (POST, USER)
@@ -72,21 +77,7 @@ public class SearchServiceImpl implements SearchService {
                 }
             }
 
-            // TODO: 향후 위치 기반 검색 필터 추가 예시
-            // if ("POST".equalsIgnoreCase(request.getTargetType()) && request.getLatitude()
-            // != null && request.getLongitude() != null) {
-            // GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(),
-            // 4326);
-            // Point userLocation = geometryFactory.createPoint(new
-            // Coordinate(request.getLongitude(), request.getLatitude()));
-            // double distanceInMeters = 5000; // 5km
-            //
-            // predicates.add(cb.lessThanOrEqualTo(
-            // cb.function("ST_Distance_Sphere", Double.class, root.get("locationPoint"),
-            // cb.literal(userLocation)),
-            // distanceInMeters
-            // ));
-            // }
+            // TODO: 향후 위치 기반 검색 필터 추가, 근데 그전에 sql 파일 깨진거부터 교체를 해야한다는 슬픈 사실..
 
             return cb.and(predicates.toArray(new Predicate[0]));
         }, pageable);

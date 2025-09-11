@@ -23,4 +23,8 @@ public interface SearchIndexRepository extends JpaRepository<SearchIndex, UUID>,
 
         // sourceId와 sourceType으로 SearchIndex를 삭제합니다.
         void deleteBySourceIdAndSourceType(UUID sourceId, String sourceType);
+
+        @Query(value = "SELECT si.id FROM search_index si " +
+                        "WHERE MATCH(si.full_text_content) AGAINST(:searchQuery IN BOOLEAN MODE) > 0.0", nativeQuery = true)
+        List<UUID> findIdsByFullTextSearch(@Param("searchQuery") String searchQuery);
 }

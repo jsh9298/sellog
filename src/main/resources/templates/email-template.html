@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html  xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${subject}"></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title th:text="${subject}"></title>
 </head>
 <body>
-<div style="display: flex;">
-    <p>이메일 탬플릿</p>
+    <div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
+    <div style="margin:50px auto;width:70%;padding:20px 0">
+        <div style="border-bottom:1px solid #eee">
+        <a href="#" style="font-size:1.4em;color: #c6b305;text-decoration:none;font-weight:600">Sellog</a>
+        </div>
+        <p style="font-size:1.1em">인증용 메일</p>
+        <p>(대충 otp메일이고 유효는 5분 정도 된다는 내용)</p>
+        <h2 style="background: #c6b305;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;" th:text="${message}">000000</h2>
+        <p style="font-size:0.9em;">인사말을 넣으라네요, 안녕하세요.<br />Sellog</p>
+        <hr style="border:none;border-top:1px solid #eee" />
+        <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
+        <p>탬플릿받은거임</p>
+        <p>내용채우기용 헛소리</p>
+        <p>아무말</p>
+    </div>
+  </div>
 </div>
-<br/>
-<p th:text="${message}"></p>
-<img img th:src="'data:image/jpg;base64,' + ${logoImage}" alt="로고 이미지"/>
 </body>
 </html>
