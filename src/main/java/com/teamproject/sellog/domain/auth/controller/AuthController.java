@@ -169,36 +169,38 @@ public class AuthController {
                 .body(RestResponse.success("User deleted successfully", null));
     }
 
-    // 토큰 갱신 엔드포인트 (리프레시 토큰 기반) //수정 필요.
+    // 토큰 갱신 엔드포인트 (리프레시 토큰 기반)
     @PostMapping("/refresh")
     @Operation(summary = "토큰 재발급(*)", description = "엑세스 토큰과, 리프레쉬 토큰(쿠키) 폐기 및 재발급")
     public ResponseEntity<?> refreshToken(HttpServletRequest request) {
 
-        String refreshToken = "";
-        // AuthService의 토큰 갱신 로직 호출
+        String accessToken = TokenExtractor.extractTokenFromHeader(request); // 헤더에서 엑세스토큰 추출
+        String refreshToken = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("refreshToken".equals(cookie.getName())) { // 쿠키 이름이 "refreshToken"인지 확인
                     refreshToken = cookie.getValue();
+                    break;
                 }
             }
         }
 
-        JWT jwtTokens = authService.refreshToken(refreshToken);
+        JWT jwtTokens = authService.refreshToken(accessToken, refreshToken);
 
-        String accessToken = jwtTokens.getAccessToken();
+        Map<String, String> responseMap = new HashMap<>();
+        responseMap.put("accessToken", jwtTokens.getAccessToken());
 
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
-                .maxAge(refreshTokenValidityInMilliseconds)
-                .path("/")
-                .secure(true)
-                .sameSite("None")
-                .httpOnly(true)
-                .build();
-        Map<String, String> responseMap = Collections.singletonMap("accessToken", accessToken);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(RestResponse.success("Login Success", responseMap));
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+
+        // RefreshToken이 재발급된 경우에만 쿠키를 설정
+        if (jwtTokens.getRefreshToken() != null) {
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", jwtTokens.getRefreshToken())
+                    .maxAge(refreshTokenValidityInMilliseconds)
+                    .path("/").secure(true).sameSite("None").httpOnly(true).build();
+            responseBuilder.header(HttpHeaders.SET_COOKIE, cookie.toString());
+        }
+
+        return responseBuilder.body(RestResponse.success("Token refreshed successfully", responseMap));
 
     }
 

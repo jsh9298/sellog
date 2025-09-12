@@ -66,22 +66,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         }
 
         // 5. 파라미터 타입 불일치 예외 처리
-        @ExceptionHandler(TypeMismatchException.class)
-        public ResponseEntity<RestResponse<?>> handleTypeMismatchException(TypeMismatchException e) {
-                String message = String.format("파라미터 '%s'에 잘못된 값 '%s'이(가) 입력되었습니다. 올바른 타입: '%s'",
-                                e.getPropertyName(), e.getValue(), e.getRequiredType().getSimpleName());
-                return new ResponseEntity<>(RestResponse.error(ErrorCode.INVALID_TYPE_VALUE, message),
+        @Override
+        protected ResponseEntity<Object> handleTypeMismatch(@NonNull TypeMismatchException ex,
+                        @NonNull HttpHeaders headers,
+                        @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+                String message = String.format("파라미터 '%s'에 잘못된 값 '%s'이(가) 입력되었습니다. 올바른 타입:'%s'",
+                                ex.getPropertyName(), ex.getValue(), ex.getRequiredType().getSimpleName());
+                return new ResponseEntity<>(RestResponse.error(ErrorCode.INVALID_TYPE_VALUE,
+                                message),
                                 HttpStatus.BAD_REQUEST);
         }
 
-        // 4. 나머지 처리되지 않은 모든 예외 (최후의 보루)
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity<RestResponse<?>> handleGlobalException(Exception e) {
-                System.out.println(e.getMessage());
+        // 6. 나머지 처리되지 않은 모든 예외 (최후의 보루)
+        @Override
+        protected ResponseEntity<Object> handleExceptionInternal(@NonNull Exception ex, Object body,
+                        @NonNull HttpHeaders headers,
+                        @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+                System.out.println("Unhandled exception caught: " + ex.getMessage());
                 return new ResponseEntity<>(
-                                RestResponse.error(ErrorCode.INTERNAL_SERVER_ERROR), // COMMON-005 사용
-                                HttpStatus.INTERNAL_SERVER_ERROR // HTTP Status는 Internal Server Error (500)
-                );
+                                RestResponse.error(ErrorCode.INTERNAL_SERVER_ERROR,
+                                                "예상치 못한 서버 오류가 발생했습니다:" + ex.getMessage()),
+                                HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // + @AuthenticationException, @AccessDeniedException 등 시큐리티 관련 예외도 여기서 처리할 수

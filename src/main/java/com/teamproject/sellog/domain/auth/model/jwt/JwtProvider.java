@@ -3,6 +3,7 @@ package com.teamproject.sellog.domain.auth.model.jwt;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.crypto.SecretKey;
 
@@ -70,6 +71,15 @@ public class JwtProvider {
         String refreshToken = createToken(claims, getExpireDateRefreshToken());
 
         return JWT.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+    }
+
+    public JWT createAccessToken(String userId, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("role", role);
+        String accessToken = createToken(claims, getExpireDateAccessToken());
+        // AccessToken만 생성하므로 RefreshToken은 null
+        return JWT.builder().accessToken(accessToken).refreshToken(null).build();
     }
 
     public Date getExpireDateAccessToken() {

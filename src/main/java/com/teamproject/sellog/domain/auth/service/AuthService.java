@@ -22,7 +22,7 @@ public interface AuthService {
 
     void deleteUser(String userId, String password, String accessToken, String refreshToken);
 
-    JWT refreshToken(String refreshToken);
+    JWT refreshToken(String accessToken, String refreshToken);
 
     String findUserId(String email);
 

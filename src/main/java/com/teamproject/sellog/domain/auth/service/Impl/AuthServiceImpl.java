@@ -222,37 +222,60 @@ public class AuthServiceImpl implements AuthService {
         return redisService.hasKey(ACCESS_TOKEN_BLACKLIST_PREFIX + token);
     }
 
+    @Override
     @Transactional
-    public JWT refreshToken(String refreshToken) {
-        // 1. 리프레시 토큰 유효성 검증 (서명, 만료 시간 등)
+    public JWT refreshToken(String accessToken, String refreshToken) {
+        try {
+            // 1. Refresh Token이 유효한지 먼저 확인
+            if (refreshToken != null && !refreshToken.isEmpty()) {
+                Claims claims = jwtProvider.getClaims(refreshToken);
+                String userId = claims.get("userId", String.class);
+                String storedToken = (String) redisService.getValue(REFRESH_TOKEN_PREFIX + userId);
+
+                // 1-1. Refresh Token이 화이트리스트에 존재하면 Access Token만 갱신
+                if (refreshToken.equals(storedToken)) {
+                    return refreshAccessTokenOnly(userId, accessToken);
+                }
+            }
+
+            // 2. Refresh Token이 유효하지 않거나 없는 경우, Access Token으로 시도
+            if (accessToken != null && !accessToken.isEmpty()) {
+                // Access Token의 유효성(만료, 서명)은 getClaims에서 확인됨
+                if (!isAccessTokenBlacklisted(accessToken)) {
+                    // 2-1. Access Token이 유효하면 두 토큰 모두 재발급
+                    return refreshBothTokens(accessToken);
+                }
+            }
+        } catch (JwtException e) {
+            // 모든 토큰 유효성 검증(getClaims) 과정에서 예외 발생 시, 최종 실패 처리로 이어짐
+            log.warn("Token refresh failed due to invalid token: {}", e.getMessage());
+        }
+
+        // 3. 두 토큰 모두 유효하지 않은 경우
+        throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN, "모든 토큰이 유효하지 않습니다. 다시 로그인해주세요.");
+    }
+
+    private JWT refreshBothTokens(String accessToken) {
         Claims claims;
         try {
-            claims = jwtProvider.getClaims(refreshToken); // 유효성 검증 및 클레임 추출
+            claims = jwtProvider.getClaims(accessToken);
         } catch (JwtException e) {
-            // 토큰이 유효하지 않거나 만료된 경우
             throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
         }
-
-        // 2. 토큰에서 사용자 ID 추출 및 화이트리스트 검증
         String userId = claims.get("userId", String.class);
-        String storedToken = (String) redisService.getValue(REFRESH_TOKEN_PREFIX + userId); // 타입 캐스팅 추가
-
-        if (storedToken == null || !storedToken.equals(refreshToken)) {
-            // 저장된 토큰이 없거나, 요청된 토큰과 일치하지 않으면 무효한 토큰으로 간주
-            throw new BusinessException(ErrorCode.INVALID_OR_EXPIRED_TOKEN);
-        }
-        // 3. 사용자 정보 조회
         User user = authRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 4. 사용자 계정 상태 확인
         if (AccountStatus.INACTIVE.equals(user.getAccountStatus())) {
             throw new BusinessException(ErrorCode.INACTIVE_USER);
         }
 
-        // 6. 기존 리프레시 토큰을 블랙리스트에 추가 (재사용 방지)
-        // 기존 토큰의 남은 유효 시간 동안 블랙리스트에 유지
-        Date expiration = claims.getExpiration();
+        // 기존 Access Token 블랙리스트 처리
+        long remainingTime = claims.getExpiration().getTime() - System.currentTimeMillis();
+        if (remainingTime > 0) {
+            redisService.setValue(ACCESS_TOKEN_BLACKLIST_PREFIX + accessToken, "refreshed", remainingTime,
+                    TimeUnit.MILLISECONDS);
+        }
 
         // 5. 새로운 토큰 생성 및 화이트리스트 갱신
         Map<String, Object> Claims = new HashMap<>();
@@ -263,6 +286,30 @@ public class AuthServiceImpl implements AuthService {
         redisService.setValue(REFRESH_TOKEN_PREFIX + userId,
                 jwt.getRefreshToken(), refreshTokenValidityInMilliseconds, TimeUnit.MILLISECONDS);
         return jwt;
+    }
+
+    private JWT refreshAccessTokenOnly(String userId, String oldAccessToken) {
+        User user = authRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (AccountStatus.INACTIVE.equals(user.getAccountStatus())) {
+            throw new BusinessException(ErrorCode.INACTIVE_USER);
+        }
+
+        // 기존 Access Token 블랙리스트 처리
+        if (oldAccessToken != null && !oldAccessToken.isEmpty()) {
+            try {
+                Claims oldClaims = jwtProvider.getClaims(oldAccessToken);
+                long remainingTime = oldClaims.getExpiration().getTime() - System.currentTimeMillis();
+                if (remainingTime > 0) {
+                    redisService.setValue(ACCESS_TOKEN_BLACKLIST_PREFIX + oldAccessToken, "refreshed", remainingTime,
+                            TimeUnit.MILLISECONDS);
+                }
+            } catch (JwtException e) {
+                log.warn("Could not blacklist old access token: {}", e.getMessage());
+            }
+        }
+        return jwtProvider.createAccessToken(userId, user.getRole().toString());
     }
 
     @Transactional(readOnly = true)
