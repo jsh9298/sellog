@@ -33,6 +33,24 @@ public class SearchServiceImpl implements SearchService {
 
     // --- 통합 검색 로직 ---
     @Transactional(readOnly = true)
+    /*
+     * [중요] Full-Text 검색을 위한 데이터베이스 사전 설정
+     *
+     * 이 검색 기능은 MariaDB/MySQL의 Full-Text Search를 사용합니다.
+     * 한글 검색이 올바르게 동작하려면 데이터베이스에 N-gram 파서 설정이 반드시 필요합니다.
+     *
+     * 1. MariaDB/MySQL 설정 파일(my.cnf 또는 my.ini)에 다음 설정을 추가하고 DB를 재시작해야 합니다.
+     * [mysqld]
+     * ngram_token_size=2
+     *
+     * 2. `search_index` 테이블의 `full_text_content` 컬럼에 N-gram 파서를 사용하는 FULLTEXT 인덱스를
+     * 생성해야 합니다.
+     * ALTER TABLE search_index ADD FULLTEXT INDEX ft_content_idx
+     * (full_text_content) WITH PARSER ngram;
+     *
+     * 3. 위 설정이 없으면 `findIdsByFullTextSearch` 쿼리가 항상 빈 결과를 반환하여,
+     * 키워드 검색 시 결과가 나오지 않을 수 있습니다.
+     */
     public Page<SearchIndex> unifiedSearch(UnifiedSearchRequest request, String authenticatedUserId) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -50,7 +68,9 @@ public class SearchServiceImpl implements SearchService {
                 if (!matchedSearchIndexIds.isEmpty()) {
                     predicates.add(root.get("id").in(matchedSearchIndexIds));
                 } else {
-                    predicates.add(cb.isFalse(cb.literal(true)));
+                    // 키워드 검색 결과가 없으면, 다른 조건(타입, 친구 등)으로만 검색되도록
+                    // 항상 false인 조건을 추가하지 않고 넘어갑니다.
+                    // 이렇게 하면 키워드와 일치하는 내용이 없어도 친구 목록이나 특정 타입의 게시물 전체를 볼 수 있습니다.
                 }
 
             }
