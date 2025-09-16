@@ -85,7 +85,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public User registerUser(UserRegisterDto userRegisterDto) {
         try {
-
+            String verifiedKey = OTP_VERIFIED_PREFIX + userRegisterDto.getUserId();
+            if (!redisService.hasKey(verifiedKey)) {
+                throw new BusinessException(ErrorCode.OTP_NOT_VERIFIED);
+            }
             String salt = PasswordHasher.generateSalt();
             String hashedPassword = PasswordHasher.hashPassword(userRegisterDto.getPassword(), salt);
 
@@ -372,5 +375,20 @@ public class AuthServiceImpl implements AuthService {
                 TimeUnit.MINUTES);
         redisService.deleteValue(OTP_PREFIX + dto.getUserId()); // 사용된 OTP 삭제
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void sendOtpForRegister(UserOtpRequestDto dto) {
+        boolean checkMail = authRepository.existsByEmail(dto.getEmail());
+        if (checkMail) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+        redisService.setValue(OTP_PREFIX + dto.getUserId(), otp,
+                OTP_EXPIRATION_MINUTES, TimeUnit.MINUTES);
+
+        EmailSendDto emailDto = new EmailSendDto(dto.getEmail(), "[Sellog] 회원가입 인증번호", "인증번호: " + otp);
+        emailService.sendEmail(emailDto);
     }
 }

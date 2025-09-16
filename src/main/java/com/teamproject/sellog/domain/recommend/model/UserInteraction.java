@@ -22,14 +22,14 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserInteraction {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // UUID는 IDENTITY 전략과 호환되지 않습니다. AUTO로 변경합니다.
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String userId; // userId를 String 타입으로 변경
     private UUID itemId;
-    private String interactionType; // 예: "VIEW", "PURCHASE", "LIKE"
+    private InteractionType interactionType; // 행위타입 "VIEW", "PURCHASE", "LIKE"
     private LocalDateTime timestamp; // 소요시간? 체류시간?
 
-    public UserInteraction(String userId, UUID itemId, String interactionType) {
+    public UserInteraction(String userId, UUID itemId, InteractionType interactionType) {
         this.userId = userId;
         this.itemId = itemId;
         this.interactionType = interactionType;

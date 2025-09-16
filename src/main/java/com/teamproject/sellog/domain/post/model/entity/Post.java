@@ -51,7 +51,7 @@ public class Post {
     @Column(name = "type", nullable = false)
     private PostType postType;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = true)
     private String title;
 
     @Column(name = "price", nullable = false)

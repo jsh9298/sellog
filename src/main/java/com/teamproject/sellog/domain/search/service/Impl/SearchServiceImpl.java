@@ -1,7 +1,7 @@
 package com.teamproject.sellog.domain.search.service.Impl;
 
 import com.teamproject.sellog.common.locationUtils.Location;
-import com.teamproject.sellog.domain.search.model.dto.UnifiedSearchRequest;
+import com.teamproject.sellog.domain.search.model.dto.request.UnifiedSearchRequest;
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 import com.teamproject.sellog.domain.search.repository.SearchIndexEMRepository;
 import com.teamproject.sellog.domain.search.repository.SearchIndexRepository;

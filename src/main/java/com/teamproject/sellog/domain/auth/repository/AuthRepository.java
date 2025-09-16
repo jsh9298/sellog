@@ -20,6 +20,8 @@ public interface AuthRepository extends JpaRepository<User, UUID> {
 
     boolean existsByUserId(String userId);
 
+    boolean existsByEmail(String email);
+
     @Query("SELECT u.id FROM User u WHERE u.userId = :userId")
     Optional<UUID> findIdByUserId(String userId);
 

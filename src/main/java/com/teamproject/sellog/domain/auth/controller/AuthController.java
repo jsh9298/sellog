@@ -36,6 +36,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/auth")
@@ -47,13 +49,9 @@ public class AuthController {
     private final long refreshTokenValidityInMilliseconds; // 리프레시 토큰 유효 기간
     // @RequiredArgsConstructor는 @Value에 해당하는 값을 인식못함. 직접 주입해줘야함.
 
-    private final EmailService emailService;
-
     public AuthController(final AuthService authService,
-            final EmailService emailService,
             @Value("${jwt.refresh-token-expiration-ms}") final long refreshTokenValidityInMilliseconds) {
         this.authService = authService;
-        this.emailService = emailService;
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
@@ -62,6 +60,18 @@ public class AuthController {
     public ResponseEntity<?> checkId(@RequestBody CheckIdDto checkIdDto) {
         authService.checkId(checkIdDto.getUserId());
         return ResponseEntity.ok(RestResponse.success("You can use this Id", null));
+    }
+
+    @PostMapping("/register/send")
+    public ResponseEntity<?> registerSend(@RequestBody UserOtpRequestDto dto) {
+        authService.sendOtpForPasswordReset(dto);
+        return ResponseEntity.ok(RestResponse.success("OTP가 이메일로 발송되었습니다.", null));
+    }
+
+    @PostMapping("/register/verify")
+    public ResponseEntity<?> registerVerify(@RequestBody UserOtpVerifyDto dto) {
+        authService.verifyOtp(dto);
+        return ResponseEntity.ok(RestResponse.success("OTP 인증에 성공했습니다.", null));
     }
 
     @PostMapping("/register")
@@ -235,12 +245,4 @@ public class AuthController {
         authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getPassword());
         return ResponseEntity.ok(RestResponse.success("Password change successfully", null));
     }
-
-    @GetMapping("/email/test")
-    public String getMethodName(@RequestParam String param) {
-        EmailSendDto email = new EmailSendDto(param, "탬플릿 이메일 테스트", "제목테스트");
-        emailService.sendEmail(email);
-        return "success";
-    }
-
 }

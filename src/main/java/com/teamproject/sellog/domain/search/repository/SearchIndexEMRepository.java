@@ -1,6 +1,6 @@
 package com.teamproject.sellog.domain.search.repository;
 
-import com.teamproject.sellog.domain.search.model.dto.UnifiedSearchRequest;
+import com.teamproject.sellog.domain.search.model.dto.request.UnifiedSearchRequest;
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 import com.teamproject.sellog.domain.user.repository.BlockRepository;
 import com.teamproject.sellog.domain.user.repository.FollowRepository;

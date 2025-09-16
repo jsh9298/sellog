@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.teamproject.sellog.domain.search.model.dto.UnifiedSearchRequest;
+import com.teamproject.sellog.domain.search.model.dto.request.UnifiedSearchRequest;
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 
 @Service

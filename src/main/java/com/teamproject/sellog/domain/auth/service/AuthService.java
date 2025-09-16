@@ -16,6 +16,8 @@ import com.teamproject.sellog.domain.user.model.entity.user.User;
 public interface AuthService {
     User registerUser(UserRegisterDto userRegisterDto);
 
+    void sendOtpForRegister(UserOtpRequestDto dto);
+
     UserLoginResponse loginUser(UserLoginDto userLoginDto);
 
     void logoutUser(String accessToken, String refreshToken);

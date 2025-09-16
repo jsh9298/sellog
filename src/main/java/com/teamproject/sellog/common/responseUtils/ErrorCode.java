@@ -28,6 +28,7 @@ public enum ErrorCode {
     ACCOUNT_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "206", "해당아이디 소유자가 아닙니다."),
     FOLLOW_REQUEST_ALREADY_EXISTS(HttpStatus.CONFLICT, "207", "이미 팔로우를 요청한 사용자입니다."),
     FOLLOW_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "208", "존재하지 않는 팔로우 요청입니다."),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "209", "이미 존재하는 이메일입니다."),
 
     // 게시글 관련
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "301", "해당 게시글을 찾을 수 없습니다."),
