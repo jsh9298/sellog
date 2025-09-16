@@ -1,19 +1,23 @@
 package com.teamproject.sellog.domain.search.service.Impl;
 
-import com.teamproject.sellog.domain.post.model.entity.Post; // Post import
+import com.teamproject.sellog.domain.post.model.entity.Post;
 import com.teamproject.sellog.domain.auth.service.event.UserCreatedEvent;
 import com.teamproject.sellog.domain.auth.service.event.UserDeletedEvent;
-import com.teamproject.sellog.domain.post.model.entity.HashBoard; // HashBoard import
-import com.teamproject.sellog.domain.post.model.entity.HashTag; // HashTag import
-import com.teamproject.sellog.domain.search.model.entity.SearchIndex; // SearchIndex import
-import com.teamproject.sellog.domain.search.repository.SearchIndexRepository; // SearchIndexRepository import
+import com.teamproject.sellog.domain.post.model.entity.HashBoard;
+import com.teamproject.sellog.domain.post.model.entity.HashTag;
+import com.teamproject.sellog.domain.post.model.entity.Review;
+import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
+import com.teamproject.sellog.domain.search.repository.SearchIndexRepository;
 import com.teamproject.sellog.domain.search.service.SearchIndexService;
-import com.teamproject.sellog.domain.user.model.entity.user.User; // User import
-import com.teamproject.sellog.domain.post.repository.PostRepository; // PostRepository import
+import com.teamproject.sellog.domain.user.model.entity.user.User;
+import com.teamproject.sellog.domain.post.repository.PostRepository;
+import com.teamproject.sellog.domain.post.repository.ReviewRepository;
 import com.teamproject.sellog.domain.post.service.event.PostCreatedEvent;
 import com.teamproject.sellog.domain.post.service.event.PostDeletedEvent;
 import com.teamproject.sellog.domain.post.service.event.PostUpdatedEvent;
-import com.teamproject.sellog.domain.user.repository.UserRepository; // UserRepository import
+import com.teamproject.sellog.domain.post.service.event.ReviewCreatedEvent;
+import com.teamproject.sellog.domain.post.service.event.ReviewDeletedEvent;
+import com.teamproject.sellog.domain.user.repository.UserRepository;
 import com.teamproject.sellog.domain.user.service.event.UserUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +37,7 @@ public class SearchIndexServiceImpl implements SearchIndexService {
     private final SearchIndexRepository searchIndexRepository;
     private final PostRepository postRepository; // 태그 정보 등 가져오기 위함
     private final UserRepository userRepository; // 사용자 정보 가져오기 위함
+    private final ReviewRepository reviewRepository; // 리뷰 정보 가져오기 위함
 
     // --- Post 엔티티 변경 이벤트 처리 ---
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -77,6 +82,20 @@ public class SearchIndexServiceImpl implements SearchIndexService {
     public void handleUserDeleted(UserDeletedEvent event) {
         System.out.println("userDelete Event Dectected!");
         searchIndexRepository.deleteBySourceIdAndSourceType(event.getUserId(), "USER");
+    }
+
+    // --- Review 엔티티 변경 이벤트 처리 ---
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleReviewCreated(ReviewCreatedEvent event) {
+        reviewRepository.findById(event.getReviewId())
+                .ifPresent(this::updateSearchIndexForReview);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void handleReviewDeleted(ReviewDeletedEvent event) {
+        searchIndexRepository.deleteBySourceIdAndSourceType(event.getReviewId(), "REVIEW");
     }
 
     // --- SearchIndex 업데이트 로직 ---// N+1 위험 개선필요
@@ -138,5 +157,26 @@ public class SearchIndexServiceImpl implements SearchIndexService {
 
         searchIndexRepository.save(searchIndex);
 
+    }
+
+    public void updateSearchIndexForReview(Review review) {
+        SearchIndex searchIndex = searchIndexRepository.findBySourceIdAndSourceType(review.getReviewId(), "REVIEW")
+                .orElseGet(SearchIndex::new);
+
+        searchIndex.setSourceId(review.getReviewId());
+        searchIndex.setSourceType("REVIEW");
+        searchIndex.setMainTitle(review.getPost().getTitle()); // 원본 게시물 제목
+        searchIndex.setSubContent(review.getContent()); // 리뷰 내용
+        searchIndex.setThumbnailUrl(review.getPost().getThumbnail()); // 원본 게시물 썸네일
+        // searchIndex.setCreatedAt(review.getCreatedAt());
+        // searchIndex.setLikeCount(review.getLikeCnt());
+        searchIndex.setAuthorId(review.getAuthor() != null ? review.getAuthor().getUserId() : null);
+        searchIndex.setAuthorNickname(review.getAuthor().getUserProfile().getNickname());
+        searchIndex.setLocationPoint(review.getPost().getLocationPoint());
+
+        String fullText = review.getContent() + " " + review.getPost().getTitle();
+        searchIndex.setFullTextContent(fullText.trim());
+
+        searchIndexRepository.save(searchIndex);
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/search")
@@ -30,10 +31,10 @@ public class SearchController {
     // 통합 검색 API
     @GetMapping
     @Operation(summary = "검색(+)", description = "일단 열어는 둠")
-    public ResponseEntity<?> unifiedSearch(UnifiedSearchRequest dto, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> unifiedSearch(UnifiedSearchRequest dto, HttpServletRequest request) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        List<SearchIndex> results = searchService.unifiedSearch(dto, userId);
-        return ResponseEntity.ok(results);
+        Map<String, Object> results = searchService.unifiedSearch(dto, userId);
+        return ResponseEntity.ok(results); // USER와 CONTENTS를 포함한 Map 반환
     }
 
     // 자동 완성 검색어 추천 API

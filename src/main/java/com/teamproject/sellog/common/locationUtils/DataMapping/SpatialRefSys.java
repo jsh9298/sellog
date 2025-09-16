@@ -11,13 +11,11 @@ import org.hibernate.annotations.Immutable;
 
 @Entity
 @Table(name = "spatial_ref_sys")
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Immutable
 public class SpatialRefSys {
 
     @Id
-    @Column(name = "SRID")
+    @Column(name = "SRID", nullable = false)
     private Integer srid;
 
     @Column(name = "AUTH_NAME", length = 256)
@@ -28,4 +26,25 @@ public class SpatialRefSys {
 
     @Column(name = "SRTEXT", length = 2048)
     private String srtext;
+
+    // Getter methods
+    public Integer getSrid() {
+        return srid;
+    }
+
+    public String getAuthName() {
+        return authName;
+    }
+
+    public Integer getAuthSrid() {
+        return authSrid;
+    }
+
+    public String getSrtext() {
+        return srtext;
+    }
+
+    // Hibernate 및 JPA를 위한 기본 생성자
+    protected SpatialRefSys() {
+    }
 }

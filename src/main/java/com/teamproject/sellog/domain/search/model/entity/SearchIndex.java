@@ -21,12 +21,12 @@ import java.util.UUID;
 public class SearchIndex {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // 또는 UUID
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(name = "source_id", nullable = false)
     private UUID sourceId; // 원본 엔티티의 ID (Post, User 등)
-    @Column(name = "source_type", nullable = false) // 원본 엔티티의 타입 (예: "POST", "USER", "COMMENT")
+    @Column(name = "source_type", nullable = false) // 원본 엔티티의 타입 (예: "POST", "USER", "HASHTAG","REVIEW")
     private String sourceType;
 
     // 검색 대상 텍스트 필드들을 모두 통합 (Full-Text Index 적용 대상)
@@ -34,11 +34,11 @@ public class SearchIndex {
     private String fullTextContent;
 
     // 검색 결과로 보여줄 주요 정보들
-    @Column(name = "main_title") // 예: Post의 제목, User의 이름, Comment 내용 요약 등
+    @Column(name = "main_title") // 예: Post의 제목, User의 이름, REVIEW 내용 요약 등
     private String mainTitle;
-    @Column(name = "sub_content", columnDefinition = "TEXT") // 예: Post 내용 일부, Comment 내용 전부 등
+    @Column(name = "sub_content", columnDefinition = "TEXT") // 예: Post 내용 일부, REVIEW 내용, HASHTAG 등
     private String subContent;
-    @Column(name = "thumbnail_url") // 검색 결과에 썸네일 필요 시
+    @Column(name = "thumbnail_url") // 검색 결과에 썸네일 필요 시 (post,user)
     private String thumbnailUrl;
 
     // 필터링/정렬에 사용될 필드들 (다양한 원본 엔티티에 맞춰 적절히 추가)
@@ -46,7 +46,9 @@ public class SearchIndex {
     private Timestamp createdAt;
     @Column(name = "like_count")
     private BigInteger likeCount;
-    @Column(name = "author_id") // Post의 author, Comment의 commenter 등
+    @Column(name = "follower_count")
+    private BigInteger followerCount;
+    @Column(name = "author_id")
     private String authorId; // 이 필드가 특정 상황에서는 user_id 역할을 함.
     @Column(name = "author_nickname")
     private String authorNickname; // usernickname

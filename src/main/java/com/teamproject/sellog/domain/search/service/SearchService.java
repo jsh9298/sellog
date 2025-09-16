@@ -1,6 +1,7 @@
 package com.teamproject.sellog.domain.search.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -9,7 +10,7 @@ import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 
 @Service
 public interface SearchService {
-    List<SearchIndex> unifiedSearch(UnifiedSearchRequest request, String authenticatedUserId);
+    Map<String, Object> unifiedSearch(UnifiedSearchRequest request, String authenticatedUserId);
 
     List<String> getAutocompleteSuggestions(String partialQuery, int limit);
 }
