@@ -2,6 +2,7 @@ package com.teamproject.sellog.domain.recommend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import com.teamproject.sellog.domain.recommend.model.InteractionType;
 
 import com.teamproject.sellog.domain.recommend.model.UserInteraction;
 
@@ -14,5 +15,5 @@ public interface UserInteractionRepository extends JpaRepository<UserInteraction
     List<UserInteraction> findByUserId(UUID userId);
 
     // userId, itemId, interactionType을 기준으로 상호작용 기록을 삭제합니다.
-    void deleteByUserIdAndItemIdAndInteractionType(String userId, UUID itemId, String interactionType);
+    void deleteByUserIdAndItemIdAndInteractionType(String userId, UUID itemId, InteractionType interactionType);
 }

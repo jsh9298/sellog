@@ -2,7 +2,6 @@ package com.teamproject.sellog.domain.search.repository;
 
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -6,7 +6,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.teamproject.sellog.domain.search.model.dto.request.UnifiedSearchRequest;
-import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
 
 @Service
 public interface SearchService {

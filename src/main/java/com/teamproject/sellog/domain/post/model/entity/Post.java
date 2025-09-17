@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import com.teamproject.sellog.common.locationUtils.Location;
 import com.teamproject.sellog.domain.user.model.entity.user.User;
 
 import jakarta.persistence.CascadeType;

@@ -21,7 +21,6 @@ import com.teamproject.sellog.domain.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
-import jakarta.validation.Valid;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -225,21 +224,21 @@ public class AuthController {
 
     @PostMapping("/password/send")
     @Operation(summary = "비밀번호 재설정 OTP 발송(+)", description = "아이디와 이메일이 일치하는 사용자에게 OTP를 발송합니다.")
-    public ResponseEntity<?> sendOtpForPasswordReset(@Valid @RequestBody UserOtpRequestDto dto) {
+    public ResponseEntity<?> sendOtpForPasswordReset(@RequestBody UserOtpRequestDto dto) {
         authService.sendOtpForPasswordReset(dto);
         return ResponseEntity.ok(RestResponse.success("OTP가 이메일로 발송되었습니다.", null));
     }
 
     @PostMapping("/password/verify")
     @Operation(summary = "비밀번호 재설정 OTP 검증(+)", description = "발송된 OTP를 검증합니다. 성공 시 비밀번호 변경이 가능해집니다.")
-    public ResponseEntity<?> verifyOtp(@Valid @RequestBody UserOtpVerifyDto dto) {
+    public ResponseEntity<?> verifyOtp(@RequestBody UserOtpVerifyDto dto) {
         authService.verifyOtp(dto);
         return ResponseEntity.ok(RestResponse.success("OTP 인증에 성공했습니다.", null));
     }
 
     @PatchMapping("/password")
     @Operation(summary = "회원비밀번호 변경(+)", description = "OTP 인증 후 새로운 비밀번호로 변경합니다.")
-    public ResponseEntity<?> changePassword(@Valid @RequestBody UserPasswordDto userPasswordDto) {
+    public ResponseEntity<?> changePassword(@RequestBody UserPasswordDto userPasswordDto) {
         // OTP 인증이 성공했는지 확인하는 로직이 서비스 내부에 포함되어야 합니다.
         // (예: Redis에 인증 성공 플래그 저장 후 확인)
         authService.changePassword(userPasswordDto.getUserId(), userPasswordDto.getPassword());

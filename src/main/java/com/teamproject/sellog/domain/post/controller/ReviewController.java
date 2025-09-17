@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Timestamp;
@@ -46,8 +45,7 @@ public class ReviewController {
 
     @PostMapping("/review/{postId}")
     @Operation(summary = "리뷰 입력(+)", description = "리뷰 작성")
-    public ResponseEntity<RestResponse<Void>> createReview(@PathVariable UUID postId,
-            @Valid @RequestBody ReviewRequest dto,
+    public ResponseEntity<RestResponse<Void>> createReview(@PathVariable UUID postId, @RequestBody ReviewRequest dto,
             HttpServletRequest request) {
         String userId = getAuthenticatedUserId(request);
         reviewService.createReview(postId, userId, dto);
@@ -57,7 +55,7 @@ public class ReviewController {
     @PatchMapping("/review/{reviewId}")
     @Operation(summary = "리뷰 수정(+)", description = "리뷰 수정")
     public ResponseEntity<RestResponse<Void>> editReview(@PathVariable UUID reviewId,
-            @Valid @RequestBody ReviewRequest dto,
+            @RequestBody ReviewRequest dto,
             HttpServletRequest request) {
         String userId = getAuthenticatedUserId(request);
         reviewService.editReview(reviewId, userId, dto);

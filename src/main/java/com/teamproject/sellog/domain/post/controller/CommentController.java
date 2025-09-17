@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Timestamp;
@@ -55,7 +54,7 @@ public class CommentController {
     @Operation(summary = "댓글 입력(+)", description = "게시글에 댓글 또는 대댓글을 작성합니다. 대댓글을 작성하려면 쿼리 파라미터로 'parentId'를 포함해야 합니다.")
     public ResponseEntity<?> comment(@PathVariable UUID postId,
             @RequestParam(required = false) UUID parentId,
-            @Valid @RequestBody CommentRequest dto,
+            @RequestBody CommentRequest dto,
             HttpServletRequest request) {
         String userId = getAuthenticatedUserId(request);
         commentService.comment(dto, postId, parentId, userId);
@@ -66,7 +65,7 @@ public class CommentController {
     @PatchMapping("/comment/{commentId}")
     @Operation(summary = "댓글 수정(+)", description = "자신이 작성한 댓글을 수정합니다.")
     public ResponseEntity<?> editComment(@PathVariable UUID commentId,
-            @Valid @RequestBody CommentRequest dto,
+            @RequestBody CommentRequest dto,
             HttpServletRequest request) {
         String userId = getAuthenticatedUserId(request);
         commentService.editComment(dto, commentId, userId);

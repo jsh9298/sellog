@@ -18,7 +18,6 @@ import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.post.model.dto.request.PostRequestDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
-import com.teamproject.sellog.domain.post.model.dto.response.PostListResponseDto;
 import com.teamproject.sellog.domain.post.model.dto.response.PostResponseDto;
 import com.teamproject.sellog.domain.post.model.entity.PostType;
 import com.teamproject.sellog.domain.post.service.PostService;
@@ -26,7 +25,6 @@ import com.teamproject.sellog.domain.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import java.sql.Timestamp;
@@ -63,7 +61,7 @@ public class PostController {
 
     @PostMapping("/post")
     @Operation(summary = "업로드(+)", description = "게시글 업로드시 사용")
-    public ResponseEntity<?> posting(@Valid @RequestBody PostRequestDto postRequestDto) {
+    public ResponseEntity<?> posting(@RequestBody PostRequestDto postRequestDto) {
 
         postService.posting(postRequestDto);
         return ResponseEntity.ok(RestResponse.success("posting success", null));
@@ -72,7 +70,7 @@ public class PostController {
     @PatchMapping("/post/{postId}")
     @Operation(summary = "수정(+)", description = "게시글 수정시 사용")
     public ResponseEntity<?> editPost(@PathVariable UUID postId, HttpServletRequest request,
-            @Valid @RequestBody PostRequestDto dto) {
+            @RequestBody PostRequestDto dto) {
         String userId = request.getAttribute("authenticatedUserId").toString();
 
         PostResponseDto response = postService.editPost(postId, dto, userId);

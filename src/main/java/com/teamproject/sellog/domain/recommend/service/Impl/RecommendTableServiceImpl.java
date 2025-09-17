@@ -1,7 +1,6 @@
 package com.teamproject.sellog.domain.recommend.service.Impl;
 
 import com.teamproject.sellog.domain.post.model.entity.Post;
-import com.teamproject.sellog.domain.post.model.entity.Review;
 import com.teamproject.sellog.domain.post.repository.PostRepository;
 import com.teamproject.sellog.domain.post.repository.ReviewRepository;
 import com.teamproject.sellog.domain.post.service.event.PostCreatedEvent;
@@ -11,9 +10,7 @@ import com.teamproject.sellog.domain.post.service.event.PostUpdatedEvent;
 import com.teamproject.sellog.domain.post.service.event.ReviewCreatedEvent;
 import com.teamproject.sellog.domain.post.service.event.ReviewDeletedEvent;
 import com.teamproject.sellog.domain.post.service.event.PostViewedEvent; // 조회 이벤트 추가
-import com.teamproject.sellog.domain.recommend.model.Item;
 import com.teamproject.sellog.domain.recommend.repository.ItemRepository;
-import com.teamproject.sellog.domain.recommend.model.UserInteraction;
 import com.teamproject.sellog.domain.recommend.repository.UserInteractionRepository;
 import com.teamproject.sellog.domain.recommend.service.RecommendTableService;
 import com.teamproject.sellog.domain.search.model.entity.SearchIndex;
@@ -90,7 +87,6 @@ public class RecommendTableServiceImpl implements RecommendTableService {
 
     @Override
     public void handlePostDisliked(PostDislikedEvent event) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'handlePostDisliked'");
     }
 }
