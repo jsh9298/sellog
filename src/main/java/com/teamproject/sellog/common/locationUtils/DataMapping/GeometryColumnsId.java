@@ -3,10 +3,6 @@ package com.teamproject.sellog.common.locationUtils.DataMapping;
 import java.io.Serializable;
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 

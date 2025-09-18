@@ -17,6 +17,7 @@ import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.user.model.dto.request.OtherUserIdRequest;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
+import com.teamproject.sellog.domain.user.model.dto.response.FollowRequestResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
 import com.teamproject.sellog.domain.user.service.FollowBlockService;
 
@@ -24,6 +25,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+
+import com.teamproject.sellog.common.responseUtils.BusinessException;
+import com.teamproject.sellog.common.responseUtils.ErrorCode;
 
 @RestController
 @RequestMapping("/api")
@@ -123,11 +127,16 @@ public class FollowBlockController {
         return ResponseEntity.ok(RestResponse.success("팔로우 요청을 거절했습니다.", null));
     }
 
-    // TODO: 팔로우 요청 목록을 보여주는 API 추가
-    @GetMapping("/follow-requests")
-    @Operation(summary = "팔로우 요청 목록(-)", description = "받은 팔로우 요청 목록을 보여줍니다.")
-    public ResponseEntity<?> listFollowRequests(HttpServletRequest request) {
-        return null;
+    @GetMapping("/followers/requests")
+    @Operation(summary = "팔로우 요청 목록 조회(+)", description = "받은 팔로우 요청 목록을 조회합니다.")
+    public ResponseEntity<RestResponse<CursorPageResponse<FollowRequestResponse>>> listFollowRequests(
+            HttpServletRequest request,
+            @RequestParam(required = false) Timestamp lastCreateAt,
+            @RequestParam(required = false) UUID lastId,
+            @RequestParam(defaultValue = "10") int limit) {
+        String userId = request.getAttribute("authenticatedUserId").toString();
+        CursorPageResponse<FollowRequestResponse> responseData = followBlockService.listFollowRequests(userId,
+                lastCreateAt, lastId, limit);
+        return ResponseEntity.ok(RestResponse.success("팔로우 요청 목록을 성공적으로 조회했습니다.", responseData));
     }
-
 }

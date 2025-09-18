@@ -1,12 +1,10 @@
 package com.teamproject.sellog.common.locationUtils.DataMapping;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
 import org.locationtech.jts.geom.Geometry;
 
+//SRID 5186로 저장되어있어  SRID 4326로 변환 해서 사용해야 할 수도있음
 @Entity
 @Table(name = "korea_emd_boundary")
 @Immutable

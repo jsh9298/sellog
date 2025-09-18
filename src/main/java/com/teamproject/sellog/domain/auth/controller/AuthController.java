@@ -1,8 +1,6 @@
 package com.teamproject.sellog.domain.auth.controller;
 
 import com.teamproject.sellog.common.accountsUtils.TokenExtractor;
-import com.teamproject.sellog.common.emailUtils.EmailSendDto;
-import com.teamproject.sellog.common.emailUtils.EmailService;
 import com.teamproject.sellog.common.responseUtils.BusinessException;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
@@ -20,11 +18,9 @@ import com.teamproject.sellog.domain.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 

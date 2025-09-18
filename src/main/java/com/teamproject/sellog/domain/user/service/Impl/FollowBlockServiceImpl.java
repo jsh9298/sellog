@@ -16,6 +16,7 @@ import com.teamproject.sellog.common.responseUtils.CursorPageResponse;
 import com.teamproject.sellog.common.responseUtils.ErrorCode;
 import com.teamproject.sellog.domain.user.mapper.FollowBlockMapper;
 import com.teamproject.sellog.domain.user.model.dto.response.BlockResponse;
+import com.teamproject.sellog.domain.user.model.dto.response.FollowRequestResponse;
 import com.teamproject.sellog.domain.user.model.dto.response.FollowerResponse;
 import com.teamproject.sellog.domain.user.model.entity.friend.Block;
 import com.teamproject.sellog.domain.user.model.entity.friend.FollowRequest;
@@ -106,7 +107,7 @@ public class FollowBlockServiceImpl implements FollowBlockService {
 
         if (CheckStatus.isPrivate(other)) {
             // 대상이 비공개 계정이면 팔로우 요청 생성
-            if (followRequestRepository.existsByRequesterAndTarget(user, other)) {
+            if (followRequestRepository.findByRequesterIdAndReceiverId(user.getId(), other.getId()).isPresent()) {
                 throw new BusinessException(ErrorCode.FOLLOW_REQUEST_ALREADY_EXISTS);
             }
             FollowRequest request = new FollowRequest();
@@ -194,6 +195,39 @@ public class FollowBlockServiceImpl implements FollowBlockService {
     public void declineFollowRequest(UUID requestId) {
         // 요청 존재 여부만 확인하고 삭제
         followRequestRepository.deleteById(requestId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CursorPageResponse<FollowRequestResponse> listFollowRequests(String userId, Timestamp lastCreateAt,
+            UUID lastId, int limit) {
+        User user = findUser(userId);
+
+        // 다음 페이지 조회를 위해 limit + 1 만큼 요청
+        Pageable pageable = PageRequest.of(0, limit + 1, Sort.by(Sort.Direction.DESC, "createAt", "id"));
+
+        // 첫 페이지 조회 시 커서 값을 현재 시간과 최대 UUID로 설정
+        if (lastCreateAt == null) {
+            lastCreateAt = new Timestamp(System.currentTimeMillis());
+        }
+        if (lastId == null) {
+            lastId = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        }
+
+        List<FollowRequest> requests = followRequestRepository.findByReceiverIdWithCursor(user.getId(), lastCreateAt,
+                lastId, pageable);
+
+        boolean hasNext = requests.size() > limit;
+        List<FollowRequest> content = hasNext ? requests.subList(0, limit) : requests;
+
+        List<FollowRequestResponse> responseContent = content.stream()
+                .map(FollowRequestResponse::fromEntity)
+                .collect(Collectors.toList());
+
+        Timestamp nextCursorCreateAt = hasNext ? content.get(limit - 1).getCreateAt() : null;
+        UUID nextCursorId = hasNext ? content.get(limit - 1).getId() : null;
+
+        return new CursorPageResponse<>(responseContent, hasNext, null, nextCursorCreateAt, nextCursorId);
     }
 
     private User findUser(String userId) {
