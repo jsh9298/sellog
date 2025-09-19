@@ -60,7 +60,6 @@ public class LocationUtilsService {
     @Transactional(readOnly = true)
     public String getEmdNameFromCoordinates(double longitude, double latitude) {
         Point point = createPoint(longitude, latitude);
-        // 5186 좌표 반환
         Optional<KoreaEmdBoundary> boundaryOptional = koreaEmdBoundaryRepository.findBoundaryContainingPoint(point);
 
         return boundaryOptional.map(KoreaEmdBoundary::getEmdNm).orElse(null);

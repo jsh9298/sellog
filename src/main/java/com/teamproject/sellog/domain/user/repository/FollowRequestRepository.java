@@ -14,10 +14,10 @@ import org.springframework.data.repository.query.Param;
 import com.teamproject.sellog.domain.user.model.entity.friend.FollowRequest;
 
 public interface FollowRequestRepository extends JpaRepository<FollowRequest, UUID> {
-    Optional<FollowRequest> findByRequesterIdAndReceiverId(UUID requesterId, UUID receiverId);
+    Optional<FollowRequest> findByRequesterIdAndTargetId(UUID requesterId, UUID targetId);
 
     @EntityGraph(attributePaths = { "requester", "requester.userProfile" })
-    @Query("SELECT fr FROM FollowRequest fr WHERE fr.receiver.id = :receiverId AND (fr.createAt < :lastCreateAt OR (fr.createAt = :lastCreateAt AND fr.id < :lastId)) ORDER BY fr.createAt DESC, fr.id DESC")
+    @Query("SELECT fr FROM FollowRequest fr WHERE fr.target.id = :receiverId AND (fr.createAt < :lastCreateAt OR (fr.createAt = :lastCreateAt AND fr.id < :lastId)) ORDER BY fr.createAt DESC, fr.id DESC")
     List<FollowRequest> findByReceiverIdWithCursor(@Param("receiverId") UUID receiverId,
             @Param("lastCreateAt") Timestamp lastCreateAt, @Param("lastId") UUID lastId, Pageable pageable);
 }

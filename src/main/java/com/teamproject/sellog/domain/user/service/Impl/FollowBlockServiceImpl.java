@@ -107,7 +107,7 @@ public class FollowBlockServiceImpl implements FollowBlockService {
 
         if (CheckStatus.isPrivate(other)) {
             // 대상이 비공개 계정이면 팔로우 요청 생성
-            if (followRequestRepository.findByRequesterIdAndReceiverId(user.getId(), other.getId()).isPresent()) {
+            if (followRequestRepository.findByRequesterIdAndTargetId(user.getId(), other.getId()).isPresent()) {
                 throw new BusinessException(ErrorCode.FOLLOW_REQUEST_ALREADY_EXISTS);
             }
             FollowRequest request = new FollowRequest();

@@ -29,8 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/auth")
@@ -57,7 +55,7 @@ public class AuthController {
 
     @PostMapping("/register/send")
     public ResponseEntity<?> registerSend(@RequestBody UserOtpRequestDto dto) {
-        authService.sendOtpForPasswordReset(dto);
+        authService.sendOtpForRegister(dto);
         return ResponseEntity.ok(RestResponse.success("OTP가 이메일로 발송되었습니다.", null));
     }
 
