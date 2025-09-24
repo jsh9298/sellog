@@ -33,6 +33,15 @@ public class RecommendTableServiceImpl implements RecommendTableService {
     private final PostRepository postRepository;
     private final ReviewRepository reviewRepository;
 
+    /*
+     * 수집이 필요한 이벤트 종류 정리
+     * 1.게시물 작성/수정/삭제
+     * 2.조회 내역 및 체류 시간
+     * 3.좋아요,싫어요 내역
+     * 4.리뷰작성 내역 및 후기 점수
+     * 5.검색어 내역 및 사용빈도?
+     * 6.맞팔 목록
+     */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handlePostCreated(PostCreatedEvent event) {
