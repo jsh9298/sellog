@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.teamproject.sellog.common.responseUtils.RestResponse;
 import com.teamproject.sellog.domain.file.model.FileResponse;
 import com.teamproject.sellog.domain.file.model.FileTarget;
-import com.teamproject.sellog.domain.file.service.AzureBlobService;
+import com.teamproject.sellog.domain.file.service.FileMngrService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "파일", description = "사이트 공용 파일 업로드 api")
 public class UploadController {
 
-    private final AzureBlobService azureBlobService;
+    private final FileMngrService fileMngrService;
 
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "업로드(+)", description = "단일 파일 업로드시 사용")
@@ -37,7 +37,7 @@ public class UploadController {
             @RequestParam("fileType") FileTarget fileType) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         try {
-            FileResponse saved = azureBlobService.uploadWithMetadata(userId, file, fileType);
+            FileResponse saved = fileMngrService.uploadWithMetadata(userId, file, fileType);
             return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", saved));
         } catch (Exception e) {
             return ResponseEntity.ok(new RestResponse<>(false, "500", "Error: " + e.getMessage(), null));
@@ -51,7 +51,7 @@ public class UploadController {
             @RequestParam("fileType") FileTarget fileType) {
         String userId = request.getAttribute("authenticatedUserId").toString();
         try {
-            List<FileResponse> result = azureBlobService.uploadMultiple(userId, files,
+            List<FileResponse> result = fileMngrService.uploadMultiple(userId, files,
                     fileType);
             return ResponseEntity.ok(new RestResponse<>(true, "200", fileType + " thumbnail urls", result));
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class UploadController {
     @Operation(summary = "삭제(+)", description = "단일 파일 삭제시 사용")
     public ResponseEntity<?> deleteFile(HttpServletRequest request, @PathVariable String fileHash) {
         String userId = request.getAttribute("authenticatedUserId").toString();
-        boolean deleted = azureBlobService.deleteFile(userId, fileHash);
+        boolean deleted = fileMngrService.deleteFile(userId, fileHash);
         if (deleted)
             return ResponseEntity.ok(new RestResponse<>(false, "200", "File deleted successful", null));
         return ResponseEntity.ok(new RestResponse<>(false, "404", "File not found or unauthorized", null));

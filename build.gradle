@@ -23,9 +23,9 @@ repositories {
 	mavenCentral()
 }
 
-ext {
-	set('springCloudAzureVersion', "5.23.0")
-}
+// ext {
+// 	set('springCloudAzureVersion', "5.23.0")
+// }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
@@ -37,9 +37,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	implementation 'com.azure.spring:spring-cloud-azure-starter'
-	implementation 'com.azure.spring:spring-cloud-azure-starter-keyvault'
-	implementation 'com.azure.spring:spring-cloud-azure-starter-storage'
+	// implementation 'com.azure.spring:spring-cloud-azure-starter'
+	// implementation 'com.azure.spring:spring-cloud-azure-starter-keyvault'
+	// implementation 'com.azure.spring:spring-cloud-azure-starter-storage'
 	
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	implementation 'org.hibernate:hibernate-spatial:7.0.9.Final'
@@ -70,13 +70,18 @@ dependencies {
 
  	// Hibernate Spatial - JPA에서 공간 데이터 타입 및 함수 지원
     // implementation 'org.hibernate.orm:hibernate-spatial:6.2.7.Final' 
+
+	implementation 'net.coobird:thumbnailator:0.4.20'
+
+	// jave2 (ffmpeg wrapper) for video processing
+	implementation 'ws.schild:jave-core:3.5.0'
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "com.azure.spring:spring-cloud-azure-dependencies:${springCloudAzureVersion}"
-	}
-}
+// dependencyManagement {
+// 	imports {
+// 		mavenBom "com.azure.spring:spring-cloud-azure-dependencies:${springCloudAzureVersion}"
+// 	}
+// }
 
 tasks.named('test') {
 	useJUnitPlatform()

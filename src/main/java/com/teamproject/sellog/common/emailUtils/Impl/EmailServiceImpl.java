@@ -36,7 +36,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("message", mailHtmlSendDto.getContent());
 
             String htmlContent = templateEngine.process("email-template", context);
-            helper.setFrom("DoNotReply@c63138e7-6e8c-4ff6-a57f-a848d14d2b13.azurecomm.net");
+            helper.setFrom(""); // 다른 이메일 주소로 변경할 필요 있음.
             helper.setTo(mailHtmlSendDto.getEmailAddr());
             helper.setSubject(mailHtmlSendDto.getSubject());
             helper.setText(htmlContent, true);

@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # MariaDB 데이터베이스 서비스
+  db:
+    image: mariadb:11.8.3 # MariaDB 공식 이미지 사용 (안정적인 버전)
+    container_name: sellog-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root # 루트 비밀번호 (보안을 위해 변경 권장)
+      MYSQL_DATABASE: sellog_dev      # 생성할 데이터베이스 이름
+      MYSQL_USER: spring              # 생성할 사용자 이름
+      MYSQL_PASSWORD: spring-boot     # 생성할 사용자의 비밀번호
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot 애플리케이션 서비스
+  app:
+    build:
+      context: .
+      dockerfile_inline: |
+       FROM openjdk:21-jdk-slim
+       RUN apt-get update && apt-get install -y redis-server ffmpeg mariadb-client
+       WORKDIR /app
+       COPY build/libs/dev0.0.4-SNAPSHOTtemp2.jar app.jar
+       EXPOSE 8080
+       CMD ["java", "-jar", "app.jar"]
+    container_name: sellog-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy # db 서비스가 healthcheck를 통과한 후에 app 서비스를 시작합니다.
+    ports:
+      - "8080:8080" # 로컬 PC의 8080 포트를 컨테이너의 8080 포트와 연결합니다.
+    environment:
+      # application.properties의 DB 설정을 덮어씁니다.
+      - SPRING_DATASOURCE_URL=jdbc:mariadb://db:3306/sellog_dev?useUnicode=true&characterEncoding=utf8
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update # 애플리케이션 시작 시 엔티티에 맞춰 DB 스키마를 업데이트합니다.

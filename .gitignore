@@ -4,7 +4,6 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-/application.properties
 ### STS ###
 .apt_generated
 .classpath
@@ -35,12 +34,3 @@ out/
 
 ### VS Code ###
 /.vscode/
-
-
-/azurefunction/node_modules/
-
-/azurefunction/dist
-
-/azurefunction/local.settings.json
-
-azurefunction/function.zip
